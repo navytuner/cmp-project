@@ -9,7 +9,7 @@
 LEX = flex
 
 YACC = bison
-YFLAGS = -d
+YFLAGS = -d -Wcounterexamples
 
 CC = gcc
 CFLAGS = -g

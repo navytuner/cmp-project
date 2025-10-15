@@ -37,6 +37,21 @@ special_char  \\[nt]
   /* Keywords */
 "int" | "char"                  { return TYPE; }
 "struct"                        { return STRUCT; }
+"NULL"                          { return SYM_NULL; }
+"if"                            { return IF; }
+"else"                          { return ELSE; }
+"while"                         { return WHILE; }
+"for"                           { return FOR; }
+"break"                         { return BREAK; }
+"continue"                      { return CONTINUE; }
+"||"                            { return LOGICAL_OR; }
+"&&"                            { return LOGICAL_AND; }
+"<" | "<=" | ">" | ">="         { return RELOP; }
+"==" | "!="                     { return EQUOP; }
+"++"                            { return INCOP; }
+"--"                            { return DECOP; }
+"->"                            { return STRUCTOP; }
+"void"                          { return VOID; }
 
   /* Identifiers */
 {id}                            {
@@ -98,7 +113,7 @@ int main(int argc, char* argv[]) {
   // Define reserved keywords
   char *keyword[] = { 
     "int", "char", "struct", "NULL", "return",
-    "if", "else", "while", "for", "break", "continue"
+    "if", "else", "while", "for", "break", "continue",
     NULL 
   };
   int tokentype[] = { 
