@@ -9,9 +9,8 @@
 %{
 /* Prologue section */
 #include "subc.h"
-// #define REDUCE reduce
+#define REDUCE reduce
 
-int line = 0;
 int   yylex ();
 int   yyerror (char* s);
 int   get_lineno();
@@ -28,13 +27,8 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%token STRUCT SYM_NULL RETURN
-%token IF ELSE WHILE FOR BREAK CONTINUE     
-%token VOID      
-%token<stringVal> TYPE
-%token<stringVal> ID CHAR_CONST STRING
-%token<stringVal> LOGICAL_OR LOGICAL_AND RELOP EQUOP
-%token<stringVal> INCOP DECOP STRUCTOP
+%token STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE VOID      
+%token<stringVal> TYPE ID CHAR_CONST STRING LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
 %token<intVal> INTEGER_CONST
 
 /* Precedences and Associativities */
@@ -47,140 +41,142 @@ void  reduce(char* s);
 %left '+' '-'
 %left '*' '/' '%'
 %right INCOP DECOP '!' '&'
-%left '(' ')' '.' STRUCTOP
+%left '(' ')' '.' STRUCTOP '[' ']'
+
+%precedence ELSE
 
 %%
 
 /* Grammar rules section*/
 program
-  : ext_def_list { reduce("program->ext_def_list"); }
+  : ext_def_list { REDUCE("program->ext_def_list"); }
   ;
 
 ext_def_list
-  : ext_def_list ext_def { reduce("ext_def_list->ext_def_list ext_def"); }
-  | %empty { reduce("ext_def_list->epsilon"); }
+  : ext_def_list ext_def  { REDUCE("ext_def_list->ext_def_list ext_def"); }
+  | %empty                { REDUCE("ext_def_list->epsilon"); }
   ;
 
 ext_def
-  : type_specifier pointers ID ';' { reduce("ext_def->type_specifier pointers ID ;"); } /* global variable */
-  | type_specifier pointers ID '[' INTEGER_CONST ']' ';' { reduce("ext_def->type_specifier pointers ID [ INTEGER_CONST ] ;"); }
-  | struct_specifier ';' { reduce("ext_def->struct_specifier ;"); }
-  | func_decl compound_stmt { reduce("func_decl compound_stmt"); }
+  : type_specifier pointers ID ';'                        { REDUCE("ext_def->type_specifier pointers ID \';\'"); } /* global variable */
+  | type_specifier pointers ID '[' INTEGER_CONST ']' ';'  { REDUCE("ext_def->type_specifier pointers ID \'[\' INTEGER_CONST \']\' \';\'"); }
+  | struct_specifier ';'                                  { REDUCE("ext_def->struct_specifier \';\'"); }
+  | func_decl compound_stmt                               { REDUCE("ext_def->func_decl compound_stmt"); }
   ;
 
 type_specifier
-  : TYPE { reduce("type_specifier->TYPE"); }
-  | VOID { reduce("type_specifier->VOID"); }
-  | struct_specifier { reduce("type_specifier->struct_specifier"); }
+  : TYPE              { REDUCE("type_specifier->TYPE"); }
+  | VOID              { REDUCE("type_specifier->VOID"); }
+  | struct_specifier  { REDUCE("type_specifier->struct_specifier"); }
   ;
 
 struct_specifier
-  : STRUCT ID '{' def_list '}' { reduce("struct_specifier->STRUCT ID { def_list }"); }
-  | STRUCT ID { reduce("struct_specifier->STRUCT ID"); }
+  : STRUCT ID '{' def_list '}'  { REDUCE("struct_specifier->STRUCT ID \'{\' def_list \'}\'"); }
+  | STRUCT ID                   { REDUCE("struct_specifier->STRUCT ID"); }
   ;
 
 func_decl
-  : type_specifier pointers ID '(' ')' { reduce("func_decl->type_specifier pointers ID ( )"); }
-  | type_specifier pointers ID '(' VOID ')' { reduce("func_decl->type_specifier pointers ID ( VOID )"); }
-  | type_specifier pointers ID '(' param_list ')' { reduce("func_decl->type_specifier pointers ID ( param_list )"); }
+  : type_specifier pointers ID '(' ')'            { REDUCE("func_decl->type_specifier pointers ID \'(\' \')\'"); }
+  | type_specifier pointers ID '(' VOID ')'       { REDUCE("func_decl->type_specifier pointers ID \'(\' VOID \')\'"); }
+  | type_specifier pointers ID '(' param_list ')' { REDUCE("func_decl->type_specifier pointers ID \'(\' param_list \')\'"); }
   ;
 
 pointers
-  : '*' { reduce("pointers->*"); }
-  | %empty { reduce("pointers->epsilon"); }
+  : '*'     { REDUCE("pointers->\'*\'"); }
+  | %empty  { REDUCE("pointers->epsilon"); }
   ;
 
 param_list
-  : param_decl { reduce("param_list->param_decl"); }
-  | param_list ',' param_decl { reduce("param_list->param_list , param_decl"); }
+  : param_decl                  { REDUCE("param_list->param_decl"); }
+  | param_list ',' param_decl   { REDUCE("param_list->param_list \',\' param_decl"); }
   ;
 
 param_decl
-  : type_specifier pointers ID { reduce("param_decl->type_specifier pointers ID"); }
-  | type_specifier pointers ID '[' INTEGER_CONST ']' { reduce("param_decl->type_specifier pointers ID [ INTEGER_CONST ]"); }
+  : type_specifier pointers ID                        { REDUCE("param_decl->type_specifier pointers ID"); }
+  | type_specifier pointers ID '[' INTEGER_CONST ']'  { REDUCE("param_decl->type_specifier pointers ID \'[\' INTEGER_CONST \']\'"); }
   ;
 
 def_list
-  : def_list def { reduce("def_list->def_list def"); }
-  | %empty { reduce("def_list->epsilon"); }
+  : def_list def  { REDUCE("def_list->def_list def"); }
+  | %empty        { REDUCE("def_list->epsilon"); }
   ;
 
 def
-  : type_specifier pointers ID ';' { reduce("def->type_specifier pointers ID ;"); }
-  | type_specifier pointers ID '[' INTEGER_CONST ']' ';' { reduce("def->type_specifier pointers ID [ INTEGER_CONST ] ;"); }
+  : type_specifier pointers ID ';'                        { REDUCE("def->type_specifier pointers ID \';\'"); }
+  | type_specifier pointers ID '[' INTEGER_CONST ']' ';'  { REDUCE("def->type_specifier pointers ID \'[\' INTEGER_CONST \']\' ;"); }
   ;
 
 compound_stmt
-  : '{' def_list stmt_list '}' { reduce("compound_stmt->{ def_list stmt_list }"); }
+  : '{' def_list stmt_list '}' { REDUCE("compound_stmt->\'{\' def_list stmt_list \'}\'"); }
   ;
 
 stmt_list
-  : stmt_list stmt { reduce("stmt_list->stmt_list stmt"); }
-  | %empty { reduce("stmt_list->epsilon"); }
+  : stmt_list stmt  { REDUCE("stmt_list->stmt_list stmt"); }
+  | %empty          { REDUCE("stmt_list->epsilon"); }
   ;
 
 stmt
-  : expr ';' { reduce("stmt->expr ;"); }
-  | compound_stmt { reduce("stmt->compound_stmt"); }
-  | RETURN ';' { reduce("stmt->RETURN ;"); }
-  | RETURN expr ';' { reduce("stmt->RETURN expr ;"); }
-  | ';' { reduce("stmt->;"); }
-  | IF '(' expr ')' stmt { reduce("stmt->IF ( expr ) stmt"); }
-  | IF '(' expr ')' stmt ELSE stmt { reduce("stmt->IF ( expr ) stmt ELSE stmt"); }
-  | WHILE '(' expr ')' stmt { reduce("stmt->WHILE ( expr ) stmt"); }
-  | FOR '(' expr_e ';' expr_e ';' expr_e ')' stmt { reduce("stmt->FOR ( expr_e ; expr_e ; expr_e ) stmt"); }
-  | BREAK ';' { reduce("stmt->BREAK ;"); }
-  | CONTINUE ';' { reduce("stmt->CONTINUE ;"); }
+  : expr ';'                                        { REDUCE("stmt->expr \';\'"); }
+  | compound_stmt                                   { REDUCE("stmt->compound_stmt"); }
+  | RETURN ';'                                      { REDUCE("stmt->RETURN \';\'"); }
+  | RETURN expr ';'                                 { REDUCE("stmt->RETURN expr \';\'"); }
+  | ';'                                             { REDUCE("stmt->\';\'"); }
+  | IF '(' expr ')' stmt %prec '('                  { REDUCE("stmt->IF \'(\' expr \')\' stmt"); }
+  | IF '(' expr ')' stmt ELSE stmt                  { REDUCE("stmt->IF \'(\' expr \')\' stmt ELSE stmt"); }
+  | WHILE '(' expr ')' stmt                         { REDUCE("stmt->WHILE \'(\' expr \')\' stmt"); }
+  | FOR '(' expr_e ';' expr_e ';' expr_e ')' stmt   { REDUCE("stmt->FOR \'(\' expr_e \';\' expr_e \';\' expr_e \')\' stmt"); }
+  | BREAK ';'                                       { REDUCE("stmt->BREAK \';\'"); }
+  | CONTINUE ';'                                    { REDUCE("stmt->CONTINUE \';\'"); }
   ;
 
 expr_e
-  : expr { reduce("expr_e->expr"); }
-  | %empty { reduce("expr_e->epsilon"); }
+  : expr    { REDUCE("expr_e->expr"); }
+  | %empty  { REDUCE("expr_e->epsilon"); }
   ;
 
 expr
-  : unary '=' expr { reduce("expr->unary = expr"); }
-  | binary { reduce("expr->binary"); }
+  : unary '=' expr  { REDUCE("expr->unary \'=\' expr"); }
+  | binary          { REDUCE("expr->binary"); }
   ;
 
 binary
-  : binary RELOP binary { reduce("binary->binary RELOP binary"); }
-  | binary EQUOP binary { reduce("binary->binary EQUOP binary"); }
-  | binary '+' binary { reduce("binary->binary + binary"); }
-  | binary '-' binary { reduce("binary->binary - binary"); }
-  | binary '*' binary { reduce("binary->binary * binary"); }
-  | binary '/' binary { reduce("binary->binary / binary"); }
-  | binary '%' binary { reduce("binary->binary % binary"); }
-  | unary %prec '=' { reduce("binary->unary"); }
-  | binary LOGICAL_AND binary { reduce("binary->binary LOGICAL_AND binary"); }
-  | binary LOGICAL_OR binary { reduce("binary->binary LOGICAL_OR binary"); }
+  : binary RELOP binary       { REDUCE("binary->binary RELOP binary"); }
+  | binary EQUOP binary       { REDUCE("binary->binary EQUOP binary"); }
+  | binary '+' binary         { REDUCE("binary->binary \'+\' binary"); }
+  | binary '-' binary         { REDUCE("binary->binary \'-\' binary"); }
+  | binary '*' binary         { REDUCE("binary->binary \'*\' binary"); }
+  | binary '/' binary         { REDUCE("binary->binary \'/\' binary"); }
+  | binary '%' binary         { REDUCE("binary->binary \'%\' binary"); }
+  | unary %prec '='           { REDUCE("binary->unary"); }
+  | binary LOGICAL_AND binary { REDUCE("binary->binary LOGICAL_AND binary"); }
+  | binary LOGICAL_OR binary  { REDUCE("binary->binary LOGICAL_OR binary"); }
   ;
 
 unary
-  : '(' expr ')' { reduce("unary->( expr )"); }
-  | INTEGER_CONST { reduce("unary->INTEGER_CONST"); }
-  | CHAR_CONST { reduce("unary->CHAR_CONST"); }
-  | STRING { reduce("unary->STRING"); }
-  | ID { reduce("unary->ID"); }
-  | '-' unary %prec '!' { reduce("unary->- unary"); }
-  | '!' unary { reduce("unary->! unary"); }
-  | unary INCOP { reduce("unary->unary INCOP"); }
-  | unary DECOP { reduce("unary->unary DECOP"); }
-  | INCOP unary { reduce("unary->INCOP unary"); }
-  | DECOP unary { reduce("unary->DECOP unary"); }
-  | '&' unary { reduce("unary->& unary"); }
-  | '*' unary %prec '!' { reduce("unary->* unary"); }
-  | unary '[' expr ']' { reduce("unary->unary [ expr ]"); }
-  | unary '.' ID { reduce("unary->unary . ID"); }
-  | unary STRUCTOP ID { reduce("unary->unary STRUCTOP ID"); }
-  | unary '(' args ')' { reduce("unary->unary ( args )"); }
-  | unary '(' ')' { reduce("unary->unary ( )"); }
-  | SYM_NULL { reduce("unary->SYM_NULL"); }
+  : '(' expr ')'        { REDUCE("unary->\'(\' expr \')\'"); }
+  | INTEGER_CONST       { REDUCE("unary->INTEGER_CONST"); }
+  | CHAR_CONST          { REDUCE("unary->CHAR_CONST"); }
+  | STRING              { REDUCE("unary->STRING"); }
+  | ID                  { REDUCE("unary->ID"); }
+  | '-' unary %prec '!' { REDUCE("unary->\'-\' unary"); }
+  | '!' unary           { REDUCE("unary->\'!\' unary"); }
+  | unary INCOP         { REDUCE("unary->unary INCOP"); }
+  | unary DECOP         { REDUCE("unary->unary DECOP"); }
+  | INCOP unary         { REDUCE("unary->INCOP unary"); }
+  | DECOP unary         { REDUCE("unary->DECOP unary"); }
+  | '&' unary           { REDUCE("unary->\'&\' unary"); }
+  | '*' unary %prec '!' { REDUCE("unary->\'*\' unary"); }
+  | unary '[' expr ']'  { REDUCE("unary->unary \'[\' expr \']\'"); }
+  | unary '.' ID        { REDUCE("unary->unary \'.\' ID"); }
+  | unary STRUCTOP ID   { REDUCE("unary->unary STRUCTOP ID"); }
+  | unary '(' args ')'  { REDUCE("unary->unary \'(\' args \')\'"); }
+  | unary '(' ')'       { REDUCE("unary->unary \'(\' \')\'"); }
+  | SYM_NULL            { REDUCE("unary->SYM_NULL"); }
   ;
 
 args
-  : expr { reduce("args->expr"); }
-  | args ',' expr { reduce("args->args , expr"); }
+  : expr          { REDUCE("args->expr"); }
+  | args ',' expr { REDUCE("args->args \',\' expr"); }
   ;
 
 %%
@@ -192,8 +188,5 @@ int yyerror (char* s) {
 }
 
 void reduce(char* s) {
-  FILE *fp = fopen("output.txt", "w");
-  fwrite(s, 1, strlen(s), fp);
-  fwrite("\n", 1, 1, fp);
   printf("%s\n", s);
 }
