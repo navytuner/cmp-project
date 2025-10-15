@@ -153,25 +153,25 @@ binary
   ;
 
 unary
-  : '(' expr ')'        { REDUCE("unary->\'(\' expr \')\'"); }
-  | INTEGER_CONST       { REDUCE("unary->INTEGER_CONST"); }
-  | CHAR_CONST          { REDUCE("unary->CHAR_CONST"); }
-  | STRING              { REDUCE("unary->STRING"); }
-  | ID                  { REDUCE("unary->ID"); }
-  | '-' unary %prec '!' { REDUCE("unary->\'-\' unary"); }
-  | '!' unary           { REDUCE("unary->\'!\' unary"); }
-  | unary INCOP         { REDUCE("unary->unary INCOP"); }
-  | unary DECOP         { REDUCE("unary->unary DECOP"); }
-  | INCOP unary         { REDUCE("unary->INCOP unary"); }
-  | DECOP unary         { REDUCE("unary->DECOP unary"); }
-  | '&' unary           { REDUCE("unary->\'&\' unary"); }
-  | '*' unary %prec '!' { REDUCE("unary->\'*\' unary"); }
-  | unary '[' expr ']'  { REDUCE("unary->unary \'[\' expr \']\'"); }
-  | unary '.' ID        { REDUCE("unary->unary \'.\' ID"); }
-  | unary STRUCTOP ID   { REDUCE("unary->unary STRUCTOP ID"); }
-  | unary '(' args ')'  { REDUCE("unary->unary \'(\' args \')\'"); }
-  | unary '(' ')'       { REDUCE("unary->unary \'(\' \')\'"); }
-  | SYM_NULL            { REDUCE("unary->SYM_NULL"); }
+  : '(' expr ')'          { REDUCE("unary->\'(\' expr \')\'"); }
+  | INTEGER_CONST         { REDUCE("unary->INTEGER_CONST"); }
+  | CHAR_CONST            { REDUCE("unary->CHAR_CONST"); }
+  | STRING                { REDUCE("unary->STRING"); }
+  | ID                    { REDUCE("unary->ID"); }
+  | '-' unary %prec '!'   { REDUCE("unary->\'-\' unary"); }
+  | '!' unary             { REDUCE("unary->\'!\' unary"); }
+  | unary INCOP %prec '.' { REDUCE("unary->unary INCOP"); }
+  | unary DECOP %prec '.' { REDUCE("unary->unary DECOP"); }
+  | INCOP unary           { REDUCE("unary->INCOP unary"); }
+  | DECOP unary           { REDUCE("unary->DECOP unary"); }
+  | '&' unary             { REDUCE("unary->\'&\' unary"); }
+  | '*' unary %prec '!'   { REDUCE("unary->\'*\' unary"); }
+  | unary '[' expr ']'    { REDUCE("unary->unary \'[\' expr \']\'"); }
+  | unary '.' ID          { REDUCE("unary->unary \'.\' ID"); }
+  | unary STRUCTOP ID     { REDUCE("unary->unary STRUCTOP ID"); }
+  | unary '(' args ')'    { REDUCE("unary->unary \'(\' args \')\'"); }
+  | unary '(' ')'         { REDUCE("unary->unary \'(\' \')\'"); }
+  | SYM_NULL              { REDUCE("unary->SYM_NULL"); }
   ;
 
 args
