@@ -43,6 +43,7 @@ special_char  \\[nt]
                                 }
 "struct"                        { return STRUCT; }
 "NULL"                          { return SYM_NULL; }
+"return"                        { return RETURN; }
 "if"                            { return IF; }
 "else"                          { return ELSE; }
 "while"                         { return WHILE; }
@@ -98,12 +99,26 @@ special_char  \\[nt]
                                 }
 
   /* Operators */
-","                             { return ','; }
-";"                             { return yytext[0]; }
+"%"   { return '%'; }
+"+"   { return '+'; }
+"-"   { return '-'; }
+"*"   { return '*'; }
+"/"   { return '/'; }
+"!"   { return '!'; }
+"("   { return '('; } 
+")"   { return ')'; } 
+"{"   { return '{'; } 
+"}"   { return '}'; } 
+"["   { return '['; } 
+"]"   { return ']'; } 
+"."   { return '.'; }
+","   { return ','; }
+"&"   { return '&'; }
+";"   { return ';'; }
+"="   { return '='; }
 
   /* Whitespaces */
-{whitespace}                    { }
-
+{whitespace}                    {;}
 
   /* Comment blocks */
 <INITIAL,COMMENT>"/*"           {
@@ -118,6 +133,7 @@ special_char  \\[nt]
 
   /* Tracking line numbers */
 <*>\n                           { ++lineno; }
+.                               {;}
 
 %%
    
