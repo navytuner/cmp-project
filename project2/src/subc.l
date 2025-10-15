@@ -35,7 +35,12 @@ special_char  \\[nt]
   /* All comments in this section must be indented. */
 
   /* Keywords */
-"int" | "char"                  { return TYPE; }
+"int"|"char"                    {
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
+                                  return TYPE; 
+                                }
 "struct"                        { return STRUCT; }
 "NULL"                          { return SYM_NULL; }
 "if"                            { return IF; }
@@ -46,8 +51,18 @@ special_char  \\[nt]
 "continue"                      { return CONTINUE; }
 "||"                            { return LOGICAL_OR; }
 "&&"                            { return LOGICAL_AND; }
-"<" | "<=" | ">" | ">="         { return RELOP; }
-"==" | "!="                     { return EQUOP; }
+"<"|"<="|">"|">="               { 
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
+                                  return RELOP; 
+                                }
+"=="|"!="                       {
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp; 
+                                  return EQUOP; 
+                                }
 "++"                            { return INCOP; }
 "--"                            { return DECOP; }
 "->"                            { return STRUCTOP; }
@@ -68,13 +83,17 @@ special_char  \\[nt]
 
   /* String variables */
 \"({special_char}|[^\\\"\n])*\" {
-                                  yylval.stringVal = yytext;
+                                  char *tmp = (char *)malloc(yyleng + 1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
                                   return STRING;
                                 }
 
   /* Character variables */
 '({special_char}|[^\\'\n])'     {    
-                                  yylval.stringVal = yytext;
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
                                   return CHAR_CONST;
                                 }
 
@@ -83,7 +102,7 @@ special_char  \\[nt]
 ";"                             { return yytext[0]; }
 
   /* Whitespaces */
-{whitespace}
+{whitespace}                    { }
 
 
   /* Comment blocks */
