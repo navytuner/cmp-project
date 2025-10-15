@@ -1052,8 +1052,6 @@ State 74
    70      | unary . '(' args ')'
    71      | unary . '(' ')'
 
-    INCOP     shift, and go to state 91
-    DECOP     shift, and go to state 92
     STRUCTOP  shift, and go to state 93
     '('       shift, and go to state 95
     '.'       shift, and go to state 96
@@ -1073,8 +1071,6 @@ State 75
    70      | unary . '(' args ')'
    71      | unary . '(' ')'
 
-    INCOP     shift, and go to state 91
-    DECOP     shift, and go to state 92
     STRUCTOP  shift, and go to state 93
     '('       shift, and go to state 95
     '.'       shift, and go to state 96
@@ -1094,8 +1090,6 @@ State 76
    70      | unary . '(' args ')'
    71      | unary . '(' ')'
 
-    INCOP     shift, and go to state 91
-    DECOP     shift, and go to state 92
     STRUCTOP  shift, and go to state 93
     '('       shift, and go to state 95
     '.'       shift, and go to state 96
@@ -1115,8 +1109,6 @@ State 77
    70      | unary . '(' args ')'
    71      | unary . '(' ')'
 
-    INCOP     shift, and go to state 91
-    DECOP     shift, and go to state 92
     STRUCTOP  shift, and go to state 93
     '('       shift, and go to state 95
     '.'       shift, and go to state 96
@@ -1136,8 +1128,6 @@ State 78
    70      | unary . '(' args ')'
    71      | unary . '(' ')'
 
-    INCOP     shift, and go to state 91
-    DECOP     shift, and go to state 92
     STRUCTOP  shift, and go to state 93
     '('       shift, and go to state 95
     '.'       shift, and go to state 96
@@ -1157,8 +1147,6 @@ State 79
    70      | unary . '(' args ')'
    71      | unary . '(' ')'
 
-    INCOP     shift, and go to state 91
-    DECOP     shift, and go to state 92
     STRUCTOP  shift, and go to state 93
     '('       shift, and go to state 95
     '.'       shift, and go to state 96
