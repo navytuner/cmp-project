@@ -28,9 +28,10 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%token TYPE STRUCT SYM_NULL RETURN
+%token STRUCT SYM_NULL RETURN
 %token IF ELSE WHILE FOR BREAK CONTINUE     
 %token VOID      
+%token<stringVal> TYPE
 %token<stringVal> ID CHAR_CONST STRING
 %token<stringVal> LOGICAL_OR LOGICAL_AND RELOP EQUOP
 %token<stringVal> INCOP DECOP STRUCTOP
@@ -45,8 +46,8 @@ void  reduce(char* s);
 %left RELOP
 %left '+' '-'
 %left '*' '/' '%'
-/* %right INCOP DECOP '-' '!' '*' '&'
-%left INCOP DECOP '(' ')' '.' STRUCTOP */
+%right INCOP DECOP '!' '&'
+%left '(' ')' '.' STRUCTOP
 
 %%
 
@@ -61,7 +62,7 @@ ext_def_list
   ;
 
 ext_def
-  : type_specifier pointers ID ';' { reduce("ext_def->type_specifier pointers ID ;"); }
+  : type_specifier pointers ID ';' { reduce("ext_def->type_specifier pointers ID ;"); } /* global variable */
   | type_specifier pointers ID '[' INTEGER_CONST ']' ';' { reduce("ext_def->type_specifier pointers ID [ INTEGER_CONST ] ;"); }
   | struct_specifier ';' { reduce("ext_def->struct_specifier ;"); }
   | func_decl compound_stmt { reduce("func_decl compound_stmt"); }
