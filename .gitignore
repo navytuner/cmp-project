@@ -1,0 +1,5 @@
+examples/*
+.DS_Store
+.bash_history
+settings.json
+.vscode-server/
