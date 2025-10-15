@@ -96,8 +96,16 @@ int get_lineno() {
 
 int main(int argc, char* argv[]) {
   // Define reserved keywords
-  char *keyword[] = { "int", NULL };
-  int tokentype[] = { TYPE, 0 };
+  char *keyword[] = { 
+    "int", "char", "struct", "NULL", "return",
+    "if", "else", "while", "for", "break", "continue"
+    NULL 
+  };
+  int tokentype[] = { 
+    TYPE, TYPE, STRUCT, SYM_NULL, RETURN,
+    IF, ELSE, WHILE, FOR, BREAK, CONTINUE,
+    0 
+  };
 
   // Initialize the hash table
   for(int i=0; keyword[i] != NULL; i++) {
