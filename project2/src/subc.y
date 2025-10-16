@@ -43,6 +43,7 @@ void  reduce(char* s);
 %right INCOP DECOP '!' '&'
 %left '(' ')' '.' STRUCTOP '[' ']'
 
+/* precedence rule for dangling else problem */
 %precedence ELSE
 
 %%
@@ -103,7 +104,7 @@ def_list
 
 def
   : type_specifier pointers ID ';'                        { REDUCE("def->type_specifier pointers ID \';\'"); }
-  | type_specifier pointers ID '[' INTEGER_CONST ']' ';'  { REDUCE("def->type_specifier pointers ID \'[\' INTEGER_CONST \']\' ;"); }
+  | type_specifier pointers ID '[' INTEGER_CONST ']' ';'  { REDUCE("def->type_specifier pointers ID \'[\' INTEGER_CONST \']\' \';\'"); }
   ;
 
 compound_stmt
