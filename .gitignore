@@ -3,3 +3,5 @@ examples/*
 .bash_history
 settings.json
 .vscode-server/
+testcase/*
+*.zip
