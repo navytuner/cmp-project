@@ -67,7 +67,6 @@ special_char  \\[nt]
 "++"                            { return INCOP; }
 "--"                            { return DECOP; }
 "->"                            { return STRUCTOP; }
-"void"                          { return VOID; }
 
   /* Identifiers */
 {id}                            {

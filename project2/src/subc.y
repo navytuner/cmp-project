@@ -27,7 +27,7 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%token STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE VOID      
+%token STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
 %token<stringVal> TYPE ID CHAR_CONST STRING LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
 %token<intVal> INTEGER_CONST
 
@@ -67,7 +67,6 @@ ext_def
 
 type_specifier
   : TYPE              { REDUCE("type_specifier->TYPE"); }
-  | VOID              { REDUCE("type_specifier->VOID"); }
   | struct_specifier  { REDUCE("type_specifier->struct_specifier"); }
   ;
 
@@ -78,7 +77,6 @@ struct_specifier
 
 func_decl
   : type_specifier pointers ID '(' ')'            { REDUCE("func_decl->type_specifier pointers ID \'(\' \')\'"); }
-  | type_specifier pointers ID '(' VOID ')'       { REDUCE("func_decl->type_specifier pointers ID \'(\' VOID \')\'"); }
   | type_specifier pointers ID '(' param_list ')' { REDUCE("func_decl->type_specifier pointers ID \'(\' param_list \')\'"); }
   ;
 
@@ -119,7 +117,6 @@ stmt_list
 stmt
   : expr ';'                                        { REDUCE("stmt->expr \';\'"); }
   | compound_stmt                                   { REDUCE("stmt->compound_stmt"); }
-  | RETURN ';'                                      { REDUCE("stmt->RETURN \';\'"); }
   | RETURN expr ';'                                 { REDUCE("stmt->RETURN expr \';\'"); }
   | ';'                                             { REDUCE("stmt->\';\'"); }
   | IF '(' expr ')' stmt %prec '('                  { REDUCE("stmt->IF \'(\' expr \')\' stmt"); }
