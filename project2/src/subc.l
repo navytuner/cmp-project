@@ -35,8 +35,38 @@ special_char  \\[nt]
   /* All comments in this section must be indented. */
 
   /* Keywords */
-"int" | "char"                  { return TYPE; }
+"int"|"char"                    {
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
+                                  return TYPE; 
+                                }
 "struct"                        { return STRUCT; }
+"NULL"                          { return SYM_NULL; }
+"return"                        { return RETURN; }
+"if"                            { return IF; }
+"else"                          { return ELSE; }
+"while"                         { return WHILE; }
+"for"                           { return FOR; }
+"break"                         { return BREAK; }
+"continue"                      { return CONTINUE; }
+"||"                            { return LOGICAL_OR; }
+"&&"                            { return LOGICAL_AND; }
+"<"|"<="|">"|">="               { 
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
+                                  return RELOP; 
+                                }
+"=="|"!="                       {
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp; 
+                                  return EQUOP; 
+                                }
+"++"                            { return INCOP; }
+"--"                            { return DECOP; }
+"->"                            { return STRUCTOP; }
 
   /* Identifiers */
 {id}                            {
@@ -53,23 +83,41 @@ special_char  \\[nt]
 
   /* String variables */
 \"({special_char}|[^\\\"\n])*\" {
-                                  yylval.stringVal = yytext;
+                                  char *tmp = (char *)malloc(yyleng + 1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
                                   return STRING;
                                 }
 
   /* Character variables */
 '({special_char}|[^\\'\n])'     {    
-                                  yylval.stringVal = yytext;
+                                  char *tmp = (char *)malloc(yyleng+1);
+                                  strncpy(tmp, yytext, yyleng);
+                                  yylval.stringVal = tmp;
                                   return CHAR_CONST;
                                 }
 
   /* Operators */
-","                             { return ','; }
-";"                             { return yytext[0]; }
+"%"   { return '%'; }
+"+"   { return '+'; }
+"-"   { return '-'; }
+"*"   { return '*'; }
+"/"   { return '/'; }
+"!"   { return '!'; }
+"("   { return '('; } 
+")"   { return ')'; } 
+"{"   { return '{'; } 
+"}"   { return '}'; } 
+"["   { return '['; } 
+"]"   { return ']'; } 
+"."   { return '.'; }
+","   { return ','; }
+"&"   { return '&'; }
+";"   { return ';'; }
+"="   { return '='; }
 
   /* Whitespaces */
-{whitespace}
-
+{whitespace}                    {;}
 
   /* Comment blocks */
 <INITIAL,COMMENT>"/*"           {
@@ -84,6 +132,7 @@ special_char  \\[nt]
 
   /* Tracking line numbers */
 <*>\n                           { ++lineno; }
+.                               {;}
 
 %%
    
@@ -96,8 +145,16 @@ int get_lineno() {
 
 int main(int argc, char* argv[]) {
   // Define reserved keywords
-  char *keyword[] = { "int", NULL };
-  int tokentype[] = { TYPE, 0 };
+  char *keyword[] = { 
+    "int", "char", "struct", "NULL", "return",
+    "if", "else", "while", "for", "break", "continue",
+    NULL 
+  };
+  int tokentype[] = { 
+    TYPE, TYPE, STRUCT, SYM_NULL, RETURN,
+    IF, ELSE, WHILE, FOR, BREAK, CONTINUE,
+    0 
+  };
 
   // Initialize the hash table
   for(int i=0; keyword[i] != NULL; i++) {

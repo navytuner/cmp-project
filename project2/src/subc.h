@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 #include <strings.h>
+#include <string.h>
+#include <stdlib.h>
 
 typedef struct id {
   int tokenType;
