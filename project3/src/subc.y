@@ -21,8 +21,12 @@ void  reduce(char* s);
 
 /* yylval types */
 %union {
-  int   intVal;
-  char  *stringVal;
+  int         intval;
+  double      floatval;
+  char        *stringval;
+  struct id   *idptr;
+  struct decl *declptr;
+  struct ste  *steptr;
 }
 
 /* Precedences and Associativities */
