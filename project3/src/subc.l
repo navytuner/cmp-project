@@ -14,6 +14,7 @@
 #include "subc.tab.h"
 static int comment_depth = 0;
 static int lineno = 1;
+static char *filename;
 %}
 
 /* Definitions Section */
@@ -127,7 +128,11 @@ float_const   {integer_const}(\.{digit}*)?
 /* User Code Section */
 /* The user code section is simply copied to lex.yy.c verbatim. */
 
-int get_lineno() {
+char *get_filename(void){
+  return filename;
+}
+
+int get_lineno(void){
   return lineno;
 }
 
@@ -152,8 +157,10 @@ int main(int argc, char* argv[]) {
   // I/O stream settings
   if (argc >= 2) {
     yyin = fopen(argv[1], "r");
+    filename = strdup(argv[1]);
   } else {
     yyin = stdin;
+    filename = NULL;
   }
 
   if(!yyin) {

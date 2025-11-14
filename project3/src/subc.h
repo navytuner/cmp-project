@@ -17,21 +17,21 @@
 #define FUNC 2
 #define TYPE 3
 
-extern struct ste** scope;
+extern ste_t** scope;
 
-struct id {
+typedef struct id {
   int tokenType;
   char *name;
   int count;
-};
+} id;
 
-struct ste {
+typedef struct ste {
   struct id *id;
   struct decl *decl;
   struct ste *prev;
-};
+} ste_t;
 
-struct decl {
+typedef struct decl {
   int declclass;            // VAR, CONST, FUNC, TYPE
   struct decl *type;        // VAR, CONST
 
@@ -50,18 +50,19 @@ struct decl {
   int size;                 // ALL: size in bytes
   struct ste **scope;       // VAR: scope when VAR declared
   struct decl *next;        // for list_of_variables declarations
-};
+} decl_t;
 
 // Hash table interfaces
 unsigned hash(char *name);
-struct id *enter(int tokenType, char *name, int length);
+id *enter(int tokenType, char *name, int length);
 
 // decl.c
 void init_scope(void);
 void push_scope(void);
 void pop_scope(void);
 void finish_scope(void);
-void declare(struct id*, struct decl*);
+void insert(ste_t *);
+ste_t* declare(id*, decl_t*);
 
 // Error message printing procedures
 void error_preamble(void);

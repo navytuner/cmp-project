@@ -1,33 +1,51 @@
 #include "subc.h"
 #include <stdlib.h>
 
-struct ste **scope; // scope stack
+ste_t **scope; // scope stack
 int top;
 
 void init_scope(void){
-    top = -1;
-    scope = (struct ste **)malloc(sizeof(struct ste *));
+    top = 0;
+    scope = (ste_t **)malloc(sizeof(ste_t *));
+    scope[0] = NULL; // scope[0]: dummy node
 }
     
 void push_scope(void){
-    scope[++top] = (struct ste *)malloc(sizeof(struct ste)); 
-    scope[top] = (top > 0)? scope[top-1] : NULL;
+    scope[++top] = (ste_t *)malloc(sizeof(ste_t)); 
+    scope[top] = scope[top-1];
 }
 
 void pop_scope(void){
-    free(scope[top--]);
+    ste_t *delptr = scope[top];
+    while (delptr && delptr != scope[top-1]){
+        free(delptr);
+        delptr = delptr->prev;
+    }
+    top--;
 }
 
 void finish_scope(void){
     free(scope);
 }
 
-void insert(struct ste *steptr){
+void insert(ste_t *steptr){
     // push steptr to scope[top] 
     steptr->prev = scope[top];
     scope[top] = steptr;
 }
 
-struct ste* declare(struct id *idptr, struct decl *declptr){
+ste_t* lookup(id *idptr){
+    ste_t *cur = scope[top];
+    while (cur){
+        if (cur->id == idptr) return cur;
+        cur = cur->prev;
+    }
+    return NULL;
+}
 
+ste_t* declare(id *idptr, decl_t *declptr){
+    ste_t *newste = (ste_t *)malloc(sizeof(ste_t));
+    newste->id = idptr;
+    newste->decl = declptr;
+    return newste;
 }
