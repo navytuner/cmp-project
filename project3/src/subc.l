@@ -25,6 +25,7 @@ id            {letter}({letter}|{digit})*
 integer_const ([1-9]{digit}*)|"0"
 whitespace    [ \t]
 special_char  \\[nt]
+float_const   {integer_const}(\.{digit}*)?
 
 %x COMMENT
 
@@ -56,7 +57,7 @@ special_char  \\[nt]
   /* Identifiers */
 {id}                            {
                                   struct id *entered  = enter(ID, yytext, yyleng);
-                                  yylval.stringval = entered->name;
+                                  yylval.idptr = entered;
                                   return entered->tokenType;
                                 }
 
@@ -64,6 +65,11 @@ special_char  \\[nt]
 {integer_const}                 {
                                   yylval.intval = atoi(yytext);
                                   return INTEGER_CONST;
+                                }
+
+{float_const}                   {
+                                  sscanf(yytext, "%lf", &yylval.floatval);
+                                  return FLOAT_CONST;
                                 }
 
   /* String variables */

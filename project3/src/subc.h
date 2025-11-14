@@ -12,6 +12,13 @@
 #include <stdio.h>
 #include <strings.h>
 
+#define VAR 0
+#define CONST 1
+#define FUNC 2
+#define TYPE 3
+
+extern struct ste** scope;
+
 struct id {
   int tokenType;
   char *name;
@@ -27,15 +34,19 @@ struct ste {
 struct decl {
   int declclass;            // VAR, CONST, FUNC, TYPE
   struct decl *type;        // VAR, CONST
+
   int value;                // CONST: integer value
   float real_value;         // CONST: float value
+
   struct ste *formals;      // FUNC: formal argument list
   struct decl *returntype;  // FUNC: return TYPE decl
+
   int typeclass;            // TYPE: type class(INT, array, ptr)
   struct decl *elementvar;  // TYPE(array): point to element VAR decl
   int num_idx;              // TYPE(array): # of elements
   struct ste *fieldlist;    // TYPE(struct): point to field list
   struct decl *ptrto;       // TYPE(pointer): pointer type
+
   int size;                 // ALL: size in bytes
   struct ste **scope;       // VAR: scope when VAR declared
   struct decl *next;        // for list_of_variables declarations
@@ -44,6 +55,13 @@ struct decl {
 // Hash table interfaces
 unsigned hash(char *name);
 struct id *enter(int tokenType, char *name, int length);
+
+// decl.c
+void init_scope(void);
+void push_scope(void);
+void pop_scope(void);
+void finish_scope(void);
+void declare(struct id*, struct decl*);
 
 // Error message printing procedures
 void error_preamble(void);

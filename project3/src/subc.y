@@ -30,11 +30,14 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%token            TYPE STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
+%type<declptr>    type_specifier
+%token<declptr>   TYPE
+%token            STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
 %token            LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
-%token<stringval> ID CHAR_CONST STRING
+%token<idptr>     ID
+%token<stringval> CHAR_CONST STRING
 %token<intval>    INTEGER_CONST
-/* %token<floatval>  FLOAT_CONST */
+%token<floatval>  FLOAT_CONST
 
 /* Precedences and Associativities */
 %left ','
@@ -158,6 +161,7 @@ binary
 unary
   : '(' expr ')'          { reduce("unary->\'(\' expr \')\'"); }
   | INTEGER_CONST         { reduce("unary->INTEGER_CONST"); }
+  | FLOAT_CONST           { reduce("unary->FLOAT_CONST"); }
   | CHAR_CONST            { reduce("unary->CHAR_CONST"); }
   | STRING                { reduce("unary->STRING"); }
   | ID                    { reduce("unary->ID"); }
@@ -198,7 +202,7 @@ void reduce(char* s) {
 void error_preamble(void) {
   // TODO
   // Implement this function using get_lineno() function.
-  printf("%s:%d: error: ", "filename", 1234);
+  printf("%s:%d: error: ", get_filename(), get_lineno());
 }
 
 void error_undeclared(void) {
