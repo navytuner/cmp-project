@@ -35,40 +35,70 @@ special_char  \\[nt]
   /* All comments in this section must be indented. */
 
   /* Keywords */
-"int" | "char"                  { return TYPE; }
+"int" | "char"                  { yylval.stringval = strdup(yytext); return TYPE; }
 "struct"                        { return STRUCT; }
+"NULL"                          { return SYM_NULL; }
+"return"                        { return RETURN; }
+"if"                            { return IF; }
+"else"                          { return ELSE; }
+"while"                         { return WHILE; }
+"for"                           { return FOR; }
+"break"                         { return BREAK; }
+"continue"                      { return CONTINUE; }
+"||"                            { return LOGICAL_OR; }
+"&&"                            { return LOGICAL_AND; }
+"<"|"<="|">"|">="               { yylval.stringval = strdup(yytext); return RELOP; }
+"=="|"!="                       { yylval.stringval = strdup(yytext); return EQUOP; }
+"++"                            { return INCOP; }
+"--"                            { return DECOP; }
+"->"                            { return STRUCTOP; }
 
   /* Identifiers */
 {id}                            {
                                   struct id *entered  = enter(ID, yytext, yyleng);
-                                  yylval.stringVal = entered->name;
+                                  yylval.stringval = entered->name;
                                   return entered->tokenType;
                                 }
 
   /* Integer constants */
 {integer_const}                 {
-                                  yylval.intVal = atoi(yytext);
+                                  yylval.intval = atoi(yytext);
                                   return INTEGER_CONST;
                                 }
 
   /* String variables */
 \"({special_char}|[^\\\"\n])*\" {
-                                  yylval.stringVal = yytext;
+                                  yylval.stringval = yytext;
                                   return STRING;
                                 }
 
   /* Character variables */
 '({special_char}|[^\\'\n])'     {    
-                                  yylval.stringVal = yytext;
+                                  yylval.stringval = yytext;
                                   return CHAR_CONST;
                                 }
 
   /* Operators */
 ","                             { return ','; }
 ";"                             { return yytext[0]; }
+"%"                             { return '%'; }
+"+"                             { return '+'; }
+"-"                             { return '-'; }
+"*"                             { return '*'; }
+"/"                             { return '/'; }
+"!"                             { return '!'; }
+"("                             { return '('; } 
+")"                             { return ')'; } 
+"{"                             { return '{'; } 
+"}"                             { return '}'; } 
+"["                             { return '['; } 
+"]"                             { return ']'; } 
+"."                             { return '.'; }
+"&"                             { return '&'; }
+"="                             { return '='; }
 
   /* Whitespaces */
-{whitespace}
+{whitespace}                    {;}
 
 
   /* Comment blocks */
@@ -84,6 +114,7 @@ special_char  \\[nt]
 
   /* Tracking line numbers */
 <*>\n                           { ++lineno; }
+.                               {;}
 
 %%
    
@@ -96,8 +127,16 @@ int get_lineno() {
 
 int main(int argc, char* argv[]) {
   // Define reserved keywords
-  char *keyword[] = { "int", NULL };
-  int tokentype[] = { TYPE, 0 };
+  char *keyword[] = { 
+    "int", "char", "struct", "NULL", "return",
+    "if", "else", "while", "for", "break", "continue",
+    NULL 
+  };
+  int tokentype[] = { 
+    TYPE, TYPE, STRUCT, SYM_NULL, RETURN,
+    IF, ELSE, WHILE, FOR, BREAK, CONTINUE,
+    0 
+  };
 
   // Initialize the hash table
   for(int i=0; keyword[i] != NULL; i++) {

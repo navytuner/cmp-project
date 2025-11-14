@@ -14,7 +14,7 @@
 
 typedef struct nlist {
   struct nlist *next;
-  id *data;
+  struct id *data;
 } nlist;
 
 static nlist *hashTable[HASH_TABLE_SIZE];
@@ -37,7 +37,7 @@ nlist *mknode(int tokenType, char *name, int length){
   symname[length] = 0;
 
   // Make a node data
-  id *hdata = (id *)malloc(sizeof(id));
+  struct id *hdata = (struct id *)malloc(sizeof(struct id));
   hdata->tokenType = tokenType;
   hdata->name = symname;
   hdata->count = 1;
@@ -49,11 +49,11 @@ nlist *mknode(int tokenType, char *name, int length){
   return node;
 }
 
-id *enter(int tokenType, char *name, int length) {
+struct id *enter(int tokenType, char *name, int length) {
   // TODO: Implement this function
   unsigned int key = hf(name);
   nlist *node = hashTable[key];
-  id *hdata;
+  struct id *hdata;
   while (node){
     hdata = node->data;
     if (!strcmp(hdata->name, name)){
