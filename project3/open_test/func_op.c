@@ -8,10 +8,12 @@ char func2() {
 	return 'a';
 }
 
-void func3(int *a, int b) {
+int * func3(int *a, int b) {
 	int *c;
 
 	*c = *a + b;
+
+	return c;
 }
 
 int func4() {
