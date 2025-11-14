@@ -12,10 +12,10 @@
 #include <stdio.h>
 #include <strings.h>
 
-#define VAR 0
-#define CONST 1
-#define FUNC 2
-#define TYPE 3
+#define CLASS_VAR 0
+#define CLASS_CONST 1
+#define CLASS_FUNC 2
+#define CLASS_TYPE 3
 
 extern ste_t** scope;
 
@@ -53,6 +53,7 @@ typedef struct decl {
 } decl_t;
 
 // Hash table interfaces
+void init_hash(void);
 unsigned hash(char *name);
 id *enter(int tokenType, char *name, int length);
 
@@ -63,6 +64,7 @@ void pop_scope(void);
 void finish_scope(void);
 void insert(ste_t *);
 ste_t* declare(id*, decl_t*);
+void init_type(void);
 
 // Error message printing procedures
 void error_preamble(void);

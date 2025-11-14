@@ -7,6 +7,7 @@
  */
 
 #include "subc.h"
+#include "subc.tab.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -18,6 +19,25 @@ typedef struct nlist {
 } nlist;
 
 static nlist *hashTable[HASH_TABLE_SIZE];
+
+void init_hash(void){
+  // Define reserved keywords
+  char *keyword[] = { 
+    "int", "char", "struct", "NULL", "return",
+    "if", "else", "while", "for", "break", "continue",
+    NULL 
+  };
+  int tokentype[] = { 
+    TYPE, TYPE, STRUCT, SYM_NULL, RETURN,
+    IF, ELSE, WHILE, FOR, BREAK, CONTINUE,
+    0 
+  };
+
+  // Initialize the hash table
+  for(int i=0; keyword[i] != NULL; i++) {
+    enter(tokentype[i], keyword[i], strlen(keyword[i]));
+  }
+}
 
 // hash function using djb2 algorithm
 unsigned int hf(char *p){

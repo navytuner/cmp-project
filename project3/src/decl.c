@@ -1,4 +1,5 @@
 #include "subc.h"
+#include "subc.tab.h"
 #include <stdlib.h>
 
 ste_t **scope; // scope stack
@@ -48,4 +49,16 @@ ste_t* declare(id *idptr, decl_t *declptr){
     newste->id = idptr;
     newste->decl = declptr;
     return newste;
+}
+
+void init_type(void){
+    char *types[] = {"int", "char", "float", NULL};
+    push_scope();
+    for (int i = 0; types[i] != NULL; i++){
+        id *idptr = enter(TYPE, types[i], strlen(types[i]));
+        decl_t *declptr = (decl_t *)calloc(1, sizeof(decl_t));
+        declptr->declclass = CLASS_TYPE;
+        // declptr->typeclass = 
+        insert(declare(idptr, declptr));
+    }
 }
