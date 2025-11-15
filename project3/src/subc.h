@@ -20,14 +20,15 @@
 #define DECL_CONST 1
 #define DECL_FUNC 2
 #define DECL_TYPE 3
+#define DECL_NULL 4
 
 /* TYPE CLASSS */
-#define TYPE_INT 4 
-#define TYPE_CHAR 5
-#define TYPE_ARRAY 6
-#define TYPE_POINTER 7
-#define TYPE_STRUCT 8
-
+#define TYPE_INT 1 
+#define TYPE_CHAR 2
+#define TYPE_ARRAY 3
+#define TYPE_PTR 4
+#define TYPE_STRUCT 5
+#define TYPE_STRPTR 6
 
 typedef struct id {
   int tokenType;
@@ -75,22 +76,26 @@ unsigned hash(char *name);
 id *enter(int tokenType, char *name, int length);
 
 /* decl.c */
+// scope functions
 void init_scope(int cap);
 void push_scope(void);
 ste_t* pop_scope(int isfree);
-void finish_scope(void);
-void insert(ste_t *);
-void insert_list(ste_t *);
-ste_t* declare(id*, decl_t*);
-decl_t* find_decl(ste_t *steptr, id *idptr);
-decl_t* lookup(id *idptr);
+void finish_scope(void);        // free scope
+void insert(ste_t *);           // insert ste
+void insert_list(ste_t *);      // insert multiple stes
+ste_t* declare(id*, decl_t*);   // make ste & insert it
+decl_t* find_decl(ste_t *steptr, id *idptr);  // find id at the steptr scope
+decl_t* lookup(id *idptr);      // find idptr at the whole scope
+decl_t* lookup_cur(id *idptr);  // find idptr at the current scope
 
-decl_t* make_vardecl(decl_t *tdecl);
-decl_t* make_constdecl(decl_t *tdecl);
-decl_t* make_funcdecl(ste_t *arglist, decl_t *rettype);
-decl_t* make_arrdecl(int, decl_t *tdecl);
-decl_t* make_ptrdecl(decl_t *target);
-decl_t* make_structdecl(ste_t *ste);
+decl_t* make_var(decl_t *tdecl);
+decl_t* make_const(decl_t *tdecl);
+decl_t* make_func(ste_t *arglist, decl_t *rettype);
+decl_t* make_arr(int, decl_t *tdecl);
+decl_t* make_ptr(decl_t *target);
+decl_t* make_str(ste_t *ste);
+decl_t* make_strptr(decl_t *strdecl, decl_t *target);
+decl_t* make_null(void);
 void init_type(void);
 
 // access
@@ -100,22 +105,22 @@ decl_t* accstruct(decl_t *stdecl, id *fieldid);
 /* error.c */
 // check errors
 void check_preamble(void);
-void check_undeclared(void);
-void check_redeclaration(void);
-void check_assignable(void);
-void check_incompatible(void);
-void check_null(void);
-void check_binary(void);
-void check_unary(void);
-void check_comparable(void);
-void check_indirection(void);
-void check_addressof(void);
+void check_undeclared(id *idptr);
+void check_redeclaration(id *idptr);
+void check_assignable(decl_t *decl);
+void check_incompatible(decl_t *decl_1, decl_t *decl_2);
+void check_null(decl_t *lhs, decl_t *rhs);
+void check_binary(decl_t *op1, decl_t *op2);
+void check_unary(decl_t *decl);
+void check_comparable(decl_t *op1, decl_t *op2);
+void check_indirection(decl_t *op);
+void check_addressof(decl_t *op);
 void check_struct(decl_t *stdecl);
 void check_strurctp(decl_t *stdecl);
 void check_member(decl_t *stdecl, id *idptr);
 void check_array(decl_t *arrdecl);
 void check_subscript(decl_t *idxdecl);
-void check_incomplete(void);
+void check_incomplete(decl_t *decl);
 void check_return(void);
 void check_function(void);
 void check_arguments(void);

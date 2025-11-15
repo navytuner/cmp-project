@@ -68,10 +68,10 @@ ext_def_list
 /* global variables, struct declaration, function declaration */
 ext_def
   : type_specifier ID ';' {
-    declare($2, make_vardecl($1));
+    declare($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' {
-    declare($2, make_constdecl(make_arrdecl($4, $1)));
+    declare($2, make_const(make_arr($4, $1)));
   }
   | struct_specifier ';'     {}
   | func_decl {
@@ -84,29 +84,29 @@ ext_def
 
 type_specifier
   : TYPE                  { $$ = $1; }
-  | TYPE '*'              { $$ = make_ptrdecl(NULL); }
+  | TYPE '*'              { $$ = make_ptr(NULL); }
   | struct_specifier      { $$ = $1; }
-  | struct_specifier '*'  { $$ = make_ptrdecl(NULL); }
+  | struct_specifier '*'  { $$ = make_strptr($1, NULL); }
   ;
 
 struct_specifier
   : STRUCT ID '{' { push_scope(); } def_list { 
-    $<declptr>$ = make_structdecl(pop_scope(0));
+    $<declptr>$ = make_str(pop_scope(0));
     declare($2, $<declptr>$); 
   } '}' { $$ = $<declptr>6; }
   | STRUCT ID { 
-    $<declptr>$ = make_structdecl(NULL); 
+    $<declptr>$ = make_str(NULL); 
     declare($2, $<declptr>$);   
   } { $$ = $<declptr>3; }
   ;
 
 func_decl
   : type_specifier ID '(' ')' {
-    $<declptr>$ = make_funcdecl(NULL, $1);
+    $<declptr>$ = make_func(NULL, $1);
     declare($2, $<declptr>$);
   }
   | type_specifier ID '(' { push_scope(); } param_list ')' { 
-    $<declptr>$ = make_funcdecl(pop_scope(0), $1);
+    $<declptr>$ = make_func(pop_scope(0), $1);
     declare($2, $<declptr>$);
   }
   ;
@@ -117,9 +117,9 @@ param_list
   ;
 
 param_decl
-  : type_specifier ID { declare($2, make_vardecl($1)); }
+  : type_specifier ID { declare($2, make_var($1)); }
   | type_specifier ID '[' INTEGER_CONST ']' { 
-    declare($2, make_constdecl(make_arrdecl($4, $1)));
+    declare($2, make_const(make_arr($4, $1)));
   }
   ;
 
@@ -130,10 +130,10 @@ def_list
 
 def
   : type_specifier ID ';' { 
-    declare($2, make_vardecl($1)); 
+    declare($2, make_var($1)); 
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
-    declare($2, make_constdecl(make_arrdecl($4, $1))); 
+    declare($2, make_const(make_arr($4, $1))); 
   }
   ;
 
@@ -184,8 +184,8 @@ binary
 
 unary
   : '(' expr ')'          {}
-  | INTEGER_CONST         { $$ = make_constdecl(int_tdecl); $$->int_value = $1; }
-  | CHAR_CONST            { $$ = make_constdecl(char_tdecl); $$->char_value = $1; }
+  | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->int_value = $1; }
+  | CHAR_CONST            { $$ = make_const(char_tdecl); $$->char_value = $1; }
   | STRING                {} 
   | ID                    { $$ = lookup($1); }
   | '-' unary %prec '!'   {}
@@ -201,7 +201,7 @@ unary
   | unary STRUCTOP ID     {}
   | unary '(' args ')'    {}
   | unary '(' ')'         {}
-  | SYM_NULL              {}
+  | SYM_NULL              { $$ = make_null(); }
   ;
 
 args

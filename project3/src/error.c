@@ -2,23 +2,73 @@
 #include "subc.tab.h"
 
 void check_preamble(void);
-void check_undeclared(void);
-void check_redeclaration(void);
-void check_assignable(void);
-void check_incompatible(void);
-void check_null(void);
-void check_binary(void);
-void check_unary(void);
-void check_comparable(void);
-void check_indirection(void);
-void check_addressof(void);
+void check_undeclared(id *idptr){
+    if (!lookup(idptr)) error_undeclared();
+}
+
+void check_redeclaration(id *idptr){
+    if (lookup_cur(idptr)) error_redeclaration();
+}
+
+void check_assignable(decl_t *decl){
+    if (decl->declclass != DECL_VAR) error_assignable();
+}
+
+void check_incompatible(decl_t *decl_1, decl_t *decl_2){
+    if (decl_1->type->typeclass != decl_2->type->typeclass) error_incompatible();
+}
+
+void check_null(decl_t *lhs, decl_t *rhs){
+    if (rhs->declclass == DECL_NULL && 
+        lhs->type->typeclass != TYPE_PTR) error_null();
+}
+
+void check_binary(decl_t *op1, decl_t *op2){
+    if (op1->type->typeclass != TYPE_INT ||
+        op2->type->typeclass != TYPE_INT) error_binary();
+}
+
+void check_unary(decl_t *decl, int tflag){
+    // type should be TYPE_INT or TYPE_CHAR
+    int type = decl->type->typeclass;
+    switch (tflag){
+        case TYPE_INT | TYPE_CHAR:
+            if (type != TYPE_INT && type != TYPE_CHAR)
+                error_unary();
+            break;
+        case TYPE_INT:
+            if (type != TYPE_INT)
+                error_unary();
+            break;
+        case TYPE_CHAR:
+            if (type != TYPE_CHAR)
+                error_unary();
+            break;
+    }
+}
+
+void check_comparable(decl_t *op1, decl_t *op2){
+    int type1 = op1->type->typeclass;
+    int type2 = op2->type->typeclass;
+    if (type1 == TYPE_INT && type2 == TYPE_INT) return;
+    if (type1 == TYPE_CHAR && type2 == TYPE_CHAR) return;
+    error_comparable();
+}
+
+void check_indirection(decl_t *op){
+    if (op->type->typeclass != TYPE_PTR) error_indirection();
+}
+
+void check_addressof(decl_t *op){
+    if (op->declclass != DECL_VAR) error_addressof();
+}
 
 void check_struct(decl_t *stdecl){
     if (stdecl->type->typeclass != TYPE_STRUCT) error_struct();
 }
 
-void check_strurctp(decl_t *stdecl){
-
+void check_strurctp(decl_t *strptr){
+    if (strptr->type->typeclass != TYPE_STRPTR) error_strurctp();
 }
 
 void check_member(decl_t *stdecl, id *idptr){
@@ -33,7 +83,9 @@ void check_subscript(decl_t *idxdecl){
     if (idxdecl->type != int_tdecl) error_subscript();
 }
 
-void check_incomplete(void);
+void check_incomplete(decl_t *decl){
+}
+
 void check_return(void);
 void check_function(void);
 void check_arguments(void);

@@ -155,6 +155,7 @@ int main(int argc, char* argv[]) {
   
   yyparse();
   fclose(yyin);
+  finish_scope();
   
   return 0;
 }

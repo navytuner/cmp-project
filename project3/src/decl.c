@@ -89,21 +89,30 @@ decl_t* lookup(id *idptr){
     return find_decl(scope[top], idptr);
 }
 
-decl_t* make_vardecl(decl_t *tdecl){
+decl_t* lookup_cur(id *idptr){
+    ste_t *cur = scope[top];
+    while (cur && cur != scope[top-1]){
+        if (cur->id == idptr) return cur->decl;
+        cur = cur->prev;
+    }
+    return NULL;
+}
+
+decl_t* make_var(decl_t *tdecl){
     decl_t *vardecl = (decl_t *)calloc(1, sizeof(decl_t));
     vardecl->declclass = DECL_VAR;
     vardecl->type = tdecl;
     return vardecl;
 }
 
-decl_t* make_constdecl(decl_t *tdecl){
+decl_t* make_const(decl_t *tdecl){
     decl_t *constdecl = (decl_t *)calloc(1, sizeof(decl_t));
     constdecl->declclass = DECL_CONST;
     constdecl->type = tdecl;
     return constdecl;
 }
 
-decl_t* make_funcdecl(ste_t *arglist, decl_t *rettype){
+decl_t* make_func(ste_t *arglist, decl_t *rettype){
     decl_t *funcdecl = (decl_t *)calloc(1, sizeof(decl_t));
     funcdecl->declclass = DECL_FUNC;
     funcdecl->formals = arglist;
@@ -111,7 +120,7 @@ decl_t* make_funcdecl(ste_t *arglist, decl_t *rettype){
     return funcdecl;
 }
 
-decl_t* make_arrdecl(int len, decl_t *tdecl){
+decl_t* make_arr(int len, decl_t *tdecl){
     decl_t *arrdecl = (decl_t *)calloc(1, sizeof(decl_t));
     arrdecl->declclass = DECL_TYPE;
     arrdecl->typeclass = TYPE_ARRAY;
@@ -120,7 +129,7 @@ decl_t* make_arrdecl(int len, decl_t *tdecl){
     decl_t *vardecl;
     decl_t *nextdecl = NULL;
     for (int i = 0; i < len; i++){
-        vardecl = make_vardecl(tdecl);
+        vardecl = make_var(tdecl);
         vardecl->next = nextdecl;
         nextdecl = vardecl; 
     }
@@ -128,20 +137,35 @@ decl_t* make_arrdecl(int len, decl_t *tdecl){
     return arrdecl;
 }
 
-decl_t* make_ptrdecl(decl_t *target){
+decl_t* make_ptr(decl_t *target){
     decl_t *ptrdecl = (decl_t *)calloc(1, sizeof(decl_t));
     ptrdecl->declclass = DECL_TYPE;
-    ptrdecl->typeclass = TYPE_POINTER;
+    ptrdecl->typeclass = TYPE_PTR;
     ptrdecl->ptrto = target;
     return ptrdecl;
 }
 
-decl_t* make_structdecl(ste_t *fields){
+decl_t* make_str(ste_t *fields){
     decl_t *structdecl = (decl_t *)calloc(1, sizeof(decl_t));
     structdecl->declclass = DECL_TYPE;
     structdecl->typeclass = TYPE_STRUCT;
     structdecl->fields = fields;
     return structdecl;
+}
+
+decl_t* make_strptr(decl_t *strdecl, decl_t *target){
+    decl_t *strptr = (decl_t *)calloc(1, sizeof(decl_t));
+    strptr->declclass = DECL_TYPE;
+    strptr->typeclass = TYPE_STRPTR;
+    strptr->fields = strdecl->fields;
+    strptr->ptrto = target; 
+    return strptr;
+}
+
+decl_t* make_null(void){
+    decl_t *nulldecl = (decl_t *)calloc(1, sizeof(decl_t));
+    nulldecl->declclass = DECL_NULL;
+    return nulldecl;
 }
 
 void init_type(void){
