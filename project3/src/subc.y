@@ -23,7 +23,6 @@ void  reduce(char* s);
 /* yylval types */
 %union {
   int         intval;
-  double      floatval;
   char        *stringval;
   struct id   *idptr;
   struct decl *declptr;
@@ -38,7 +37,6 @@ void  reduce(char* s);
 %token<idptr>     ID
 %token<stringval> CHAR_CONST STRING
 %token<intval>    INTEGER_CONST
-%token<floatval>  FLOAT_CONST
 
 /* Precedences and Associativities */
 %left ','
@@ -187,7 +185,6 @@ binary
 unary
   : '(' expr ')'          {}
   | INTEGER_CONST         {}
-  | FLOAT_CONST           {}
   | CHAR_CONST            {}
   | STRING                {}
   | ID                    {}

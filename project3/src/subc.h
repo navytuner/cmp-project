@@ -23,11 +23,10 @@
 
 /* TYPE CLASSS */
 #define TYPE_INT 4 
-#define TYPE_FLOAT 5 
-#define TYPE_CHAR 6
-#define TYPE_ARRAY 7
-#define TYPE_POINTER 8
-#define TYPE_STRUCT 9
+#define TYPE_CHAR 5
+#define TYPE_ARRAY 6
+#define TYPE_POINTER 7
+#define TYPE_STRUCT 8
 
 
 typedef struct id {

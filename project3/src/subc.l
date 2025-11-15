@@ -71,11 +71,6 @@ float_const   {integer_const}(\.{digit}*)?
                                   return INTEGER_CONST;
                                 }
 
-{float_const}                   {
-                                  sscanf(yytext, "%lf", &yylval.floatval);
-                                  return FLOAT_CONST;
-                                }
-
   /* String variables */
 \"({special_char}|[^\\\"\n])*\" {
                                   yylval.stringval = yytext;

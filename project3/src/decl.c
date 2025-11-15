@@ -140,10 +140,9 @@ decl_t* make_structdecl(ste_t *fields){
     return structdecl;
 }
 
-
 void init_type(void){
-    char *types[] = {"int", "float", "char", NULL};
-    int class[] = {TYPE_INT, TYPE_FLOAT, TYPE_CHAR, 0};
+    char *types[] = {"int", "char", NULL};
+    int class[] = {TYPE_INT, TYPE_CHAR, 0};
     push_scope();
     for (int i = 0; types[i] != NULL; i++){
         id *idptr = enter(TYPE, types[i], strlen(types[i]));
@@ -155,9 +154,6 @@ void init_type(void){
         switch (class[i]){
             case TYPE_INT: 
                 int_tdecl = declptr;
-                break;
-            case TYPE_FLOAT:
-                float_tdecl = declptr;
                 break;
             case TYPE_CHAR:
                 char_tdecl = declptr;
