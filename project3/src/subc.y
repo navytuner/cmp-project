@@ -12,8 +12,6 @@
 
 int   yylex();
 int   yyerror(char* s);
-int   get_lineno();
-char* get_filename();
 char* yyget_text();
 void  reduce(char* s);
 %}
@@ -23,6 +21,7 @@ void  reduce(char* s);
 /* yylval types */
 %union {
   int         intval;
+  char        charval;
   char        *stringval;
   struct id   *idptr;
   struct decl *declptr;
@@ -30,12 +29,13 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%type<declptr>    type_specifier struct_specifier func_decl
+%type<declptr>    type_specifier struct_specifier func_decl binary unary expr
 %token<declptr>   TYPE
 %token            STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
 %token            LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
 %token<idptr>     ID
-%token<stringval> CHAR_CONST STRING
+%token<charval>   CHAR_CONST
+%token<stringval> STRING
 %token<intval>    INTEGER_CONST
 
 /* Precedences and Associativities */
@@ -177,17 +177,17 @@ binary
   | binary '*' binary         {}
   | binary '/' binary         {}
   | binary '%' binary         {}
-  | unary %prec '='           {}
+  | unary %prec '='           { $$ = $1->type; }
   | binary LOGICAL_AND binary {}
   | binary LOGICAL_OR binary  {}
   ;
 
 unary
   : '(' expr ')'          {}
-  | INTEGER_CONST         {}
-  | CHAR_CONST            {}
-  | STRING                {}
-  | ID                    {}
+  | INTEGER_CONST         { $$ = make_constdecl(int_tdecl); $$->int_value = $1; }
+  | CHAR_CONST            { $$ = make_constdecl(char_tdecl); $$->char_value = $1; }
+  | STRING                {} 
+  | ID                    { $$ = lookup($1); }
   | '-' unary %prec '!'   {}
   | '!' unary             {}
   | unary INCOP %prec '.' {}
@@ -196,8 +196,8 @@ unary
   | DECOP unary           {}
   | '&' unary             {}
   | '*' unary %prec '!'   {}
-  | unary '[' expr ']'    {}
-  | unary '.' ID          {}
+  | unary '[' expr ']'    { $$ = accarr($1, $3); }
+  | unary '.' ID          { $$ = accstruct($1, $3); }
   | unary STRUCTOP ID     {}
   | unary '(' args ')'    {}
   | unary '(' ')'         {}

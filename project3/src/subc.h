@@ -43,15 +43,15 @@ typedef struct ste {
 
 typedef struct decl {
   int declclass;            // VAR, CONST, FUNC, TYPE
-  int typeclass;            // TYPE: type class(INT, array, ptr)
   struct decl *type;        // VAR, CONST
 
-  int value;                // CONST: integer value
-  float real_value;         // CONST: float value
+  int int_value;            // CONST: integer value
+  char char_value;          // CONST: char value
 
   struct ste *formals;      // FUNC: formal argument list
   struct decl *returntype;  // FUNC: return TYPE decl
 
+  int typeclass;            // TYPE: type class(INT, array, ptr)
   struct decl *elementvar;  // TYPE(array): point to element VAR decl
   int len_arr;              // TYPE(array): # of elements
   struct ste *fields;       // TYPE(struct): point to field list
@@ -64,8 +64,10 @@ typedef struct decl {
 
 extern ste_t** scope;
 extern decl_t *int_tdecl;
-extern decl_t *float_tdecl;
 extern decl_t *char_tdecl;
+
+int   get_lineno();
+char* get_filename();
 
 /* hash.c */
 void init_hash(void);
@@ -80,6 +82,8 @@ void finish_scope(void);
 void insert(ste_t *);
 void insert_list(ste_t *);
 ste_t* declare(id*, decl_t*);
+decl_t* find_decl(ste_t *steptr, id *idptr);
+decl_t* lookup(id *idptr);
 
 decl_t* make_vardecl(decl_t *tdecl);
 decl_t* make_constdecl(decl_t *tdecl);
@@ -89,10 +93,34 @@ decl_t* make_ptrdecl(decl_t *target);
 decl_t* make_structdecl(ste_t *ste);
 void init_type(void);
 
-/* type.c */
+// access
+decl_t* accarr(decl_t *arrdecl, decl_t *idxdecl);
+decl_t* accstruct(decl_t *stdecl, id *fieldid);
 
+/* error.c */
+// check errors
+void check_preamble(void);
+void check_undeclared(void);
+void check_redeclaration(void);
+void check_assignable(void);
+void check_incompatible(void);
+void check_null(void);
+void check_binary(void);
+void check_unary(void);
+void check_comparable(void);
+void check_indirection(void);
+void check_addressof(void);
+void check_struct(decl_t *stdecl);
+void check_strurctp(decl_t *stdecl);
+void check_member(decl_t *stdecl, id *idptr);
+void check_array(decl_t *arrdecl);
+void check_subscript(decl_t *idxdecl);
+void check_incomplete(void);
+void check_return(void);
+void check_function(void);
+void check_arguments(void);
 
-// Error message printing procedures
+// print error message
 void error_preamble(void);
 void error_undeclared(void);
 void error_redeclaration(void);

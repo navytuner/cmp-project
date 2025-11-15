@@ -1,6 +1,43 @@
 #include "subc.h"
 #include "subc.tab.h"
 
+void check_preamble(void);
+void check_undeclared(void);
+void check_redeclaration(void);
+void check_assignable(void);
+void check_incompatible(void);
+void check_null(void);
+void check_binary(void);
+void check_unary(void);
+void check_comparable(void);
+void check_indirection(void);
+void check_addressof(void);
+
+void check_struct(decl_t *stdecl){
+    if (stdecl->type->typeclass != TYPE_STRUCT) error_struct();
+}
+
+void check_strurctp(decl_t *stdecl){
+
+}
+
+void check_member(decl_t *stdecl, id *idptr){
+    if (!find_decl(stdecl->fields, idptr)) error_member();
+}
+
+void check_array(decl_t *arrdecl){
+    if (arrdecl->type->typeclass != TYPE_ARRAY) error_array();
+}
+
+void check_subscript(decl_t *idxdecl){
+    if (idxdecl->type != int_tdecl) error_subscript();
+}
+
+void check_incomplete(void);
+void check_return(void);
+void check_function(void);
+void check_arguments(void);
+
 // Print the preamble of error message.
 void error_preamble(void) {
   // TODO

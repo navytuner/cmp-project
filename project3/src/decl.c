@@ -66,15 +66,6 @@ void insert_list(ste_t *steptr){
     scope[top] = steptr;
 }
 
-ste_t* lookup(id *idptr){
-    ste_t *cur = scope[top];
-    while (cur){
-        if (cur->id == idptr) return cur;
-        cur = cur->prev;
-    }
-    return NULL;
-}
-
 ste_t* declare(id *idptr, decl_t *declptr){
     ste_t *newste = (ste_t *)calloc(1, sizeof(ste_t));
     newste->id = idptr;
@@ -83,6 +74,19 @@ ste_t* declare(id *idptr, decl_t *declptr){
     newste->prev = scope[top];
     scope[top] = newste;
     return newste;
+}
+
+decl_t* find_decl(ste_t *steptr, id *idptr){
+    ste_t *cur = steptr;
+    while (cur){
+        if (cur->id == idptr) return cur->decl;
+        cur = cur->prev;
+    }
+    return NULL;
+}
+
+decl_t* lookup(id *idptr){
+    return find_decl(scope[top], idptr);
 }
 
 decl_t* make_vardecl(decl_t *tdecl){
@@ -161,4 +165,17 @@ void init_type(void){
         }
         insert(declare(idptr, declptr));
     }
+}
+
+decl_t* accarr(decl_t *arrdecl, decl_t *idxdecl){
+    decl_t *tdecl = arrdecl->type;
+    check_array(arrdecl);
+    check_subscript(idxdecl);
+    return tdecl->elementvar;
+}
+
+decl_t* accstruct(decl_t *stdecl, id *fieldid){
+    check_struct(stdecl);
+    check_member(stdecl, fieldid);
+    return find_decl(stdecl->fields, fieldid);
 }

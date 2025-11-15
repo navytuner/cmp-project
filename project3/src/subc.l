@@ -27,7 +27,6 @@ id            {letter}({letter}|{digit})*
 integer_const ([1-9]{digit}*)|"0"
 whitespace    [ \t]
 special_char  \\[nt]
-float_const   {integer_const}(\.{digit}*)?
 
 %x COMMENT
 
@@ -39,7 +38,6 @@ float_const   {integer_const}(\.{digit}*)?
 
   /* Keywords */
 "int"                           { yylval.declptr = int_tdecl; return TYPE; }
-"float"                         { yylval.declptr = float_tdecl; return TYPE; }
 "char"                          { yylval.declptr = char_tdecl; return TYPE; }
 "struct"                        { return STRUCT; }
 "NULL"                          { return SYM_NULL; }
@@ -73,13 +71,14 @@ float_const   {integer_const}(\.{digit}*)?
 
   /* String variables */
 \"({special_char}|[^\\\"\n])*\" {
-                                  yylval.stringval = yytext;
+                                  yylval.stringval = strdup(yytext);
                                   return STRING;
                                 }
 
   /* Character variables */
 '({special_char}|[^\\'\n])'     {    
-                                  yylval.stringval = yytext;
+                                  yylval.charval = yytext[1];
+                                  printf("%s\n", yytext);
                                   return CHAR_CONST;
                                 }
 
