@@ -30,7 +30,7 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%type<declptr>    type_specifier
+%type<declptr>    type_specifier struct_specifier
 %token<declptr>   TYPE
 %token            STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
 %token            LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
@@ -85,13 +85,20 @@ ext_def
   ;
 
 type_specifier
-  : TYPE              { $$ = $1;}
-  | struct_specifier  {}
+  : TYPE              { $$ = $1; }
+  | struct_specifier  { $$ = $1; }
   ;
 
 struct_specifier
-  : STRUCT ID '{' def_list '}'  {}
-  | STRUCT ID                   {}
+  : STRUCT ID '{' { push_scope(); } 
+    def_list { 
+      $$ = make_structdecl(pop_scope(0));
+      declare($2, $$); 
+    } '}' 
+  | STRUCT ID { 
+      $$ = make_structdecl(NULL); 
+      declare($2, $$);   
+    }
   ;
 
 func_decl

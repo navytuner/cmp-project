@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <strings.h>
+#include <string.h>
 
 /* DECL CLASS*/
 #define DECL_VAR 0
@@ -24,6 +25,7 @@
 #define TYPE_CHAR 6
 #define TYPE_ARRAY 7
 #define TYPE_POINTER 8
+#define TYPE_STRUCT 9
 
 extern ste_t** scope;
 extern decl_t *int_tdecl;
@@ -56,7 +58,7 @@ typedef struct decl {
 
   struct decl *elementvar;  // TYPE(array): point to element VAR decl
   int len_arr;              // TYPE(array): # of elements
-  struct ste *fieldlist;    // TYPE(struct): point to field list
+  struct ste *fields;       // TYPE(struct): point to field list
   struct decl *ptrto;       // TYPE(pointer): pointer type
 
   int size;                 // ALL: size in bytes
@@ -70,9 +72,9 @@ unsigned hash(char *name);
 id *enter(int tokenType, char *name, int length);
 
 // decl.c
-void init_scope(void);
+void init_scope(int cap=10);
 void push_scope(void);
-void pop_scope(void);
+ste_t* pop_scope(int isfree=1);
 void finish_scope(void);
 
 void insert(ste_t *);
@@ -81,8 +83,10 @@ ste_t* declare(id*, decl_t*);
 // make decl
 decl_t* make_vardecl(decl_t *tdecl);
 decl_t* make_constdecl(decl_t *tdecl);
+
 decl_t* make_arrdecl(int, decl_t *tdecl);
 decl_t* make_ptrdecl(decl_t *target);
+decl_t* make_structdecl(ste_t *ste);
 
 void init_type(void);
 

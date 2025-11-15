@@ -4,30 +4,43 @@
 
 ste_t **scope; // scope stack
 int top;
+int capacity;
 
 // tdecl variables
 decl_t *int_tdecl;
 decl_t *float_tdecl;
 decl_t *char_tdecl;
 
-void init_scope(void){
+void init_scope(int cap){
     top = 0;
-    scope = (ste_t **)calloc(1, sizeof(ste_t *));
+    scope = (ste_t **)calloc(cap, sizeof(ste_t *));
     scope[0] = NULL; // scope[0]: dummy node
+    capacity = cap;
 }
     
 void push_scope(void){
-    scope[++top] = (ste_t *)calloc(1, sizeof(ste_t)); 
-    scope[top] = scope[top-1];
+    if (top+1 == capacity){
+        // double the capacity
+        ste_t **new_scope = (ste_t **)calloc(2*capacity, sizeof(ste_t *));
+        memcpy(new_scope, scope, capacity * sizeof(ste_t *));
+        capacity *= 2;
+        free(scope);
+        scope = new_scope;
+    }
+    scope[++top] = scope[top-1];
 }
 
-void pop_scope(void){
+ste_t* pop_scope(int isfree){
     ste_t *delptr = scope[top];
-    while (delptr && delptr != scope[top-1]){
-        free(delptr);
+    ste_t *target = scope[top]; 
+    while (delptr && delptr->prev != scope[top-1]){
+        if (isfree) free(delptr);
         delptr = delptr->prev;
     }
-    top--;
+    if (isfree) free(delptr);
+    else delptr->prev = NULL;
+    scope[top--] = 0;
+    return target;
 }
 
 void finish_scope(void){
@@ -60,7 +73,7 @@ ste_t* declare(id *idptr, decl_t *declptr){
 }
 
 decl_t* make_vardecl(decl_t *tdecl){
-    decl_t *vardecl = (decl_t *)callc(1, sizeof(decl_t));
+    decl_t *vardecl = (decl_t *)calloc(1, sizeof(decl_t));
     vardecl->declclass = DECL_VAR;
     vardecl->type = tdecl;
     return vardecl;
@@ -75,14 +88,14 @@ decl_t* make_constdecl(decl_t *tdecl){
 
 decl_t* make_arrdecl(int len, decl_t *tdecl){
     decl_t *arrdecl = (decl_t *)calloc(1, sizeof(decl_t));
-    arrdecl->declclass = DECL_CONST;
+    arrdecl->declclass = DECL_TYPE;
     arrdecl->typeclass = TYPE_ARRAY;
     arrdecl->len_arr = len;
 
     decl_t *vardecl;
     decl_t *nextdecl = NULL;
     for (int i = 0; i < len; i++){
-        vardecl = make_var_decl(tdecl);
+        vardecl = make_vardecl(tdecl);
         vardecl->next = nextdecl;
         nextdecl = vardecl; 
     }
@@ -96,6 +109,14 @@ decl_t* make_ptrdecl(decl_t *target){
     ptrdecl->typeclass = TYPE_POINTER;
     ptrdecl->ptrto = target;
     return ptrdecl;
+}
+
+decl_t* make_structdecl(ste_t *fields){
+    decl_t *structdecl = (decl_t *)calloc(1, sizeof(decl_t));
+    structdecl->declclass = DECL_TYPE;
+    structdecl->typeclass = TYPE_STRUCT;
+    structdecl->fields = fields;
+    return structdecl;
 }
 
 
