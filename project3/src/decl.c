@@ -31,6 +31,8 @@ void push_scope(void){
 }
 
 ste_t* pop_scope(int isfree){
+    if (!scope[top]) return NULL;
+
     ste_t *delptr = scope[top];
     ste_t *target = scope[top]; 
     while (delptr && delptr->prev != scope[top-1]){
@@ -50,6 +52,17 @@ void finish_scope(void){
 void insert(ste_t *steptr){
     // push steptr to scope[top] 
     steptr->prev = scope[top];
+    scope[top] = steptr;
+}
+
+void insert_list(ste_t *steptr){
+    if (!steptr) return;
+
+    ste_t *last = steptr;
+    while (last && last->prev){
+        last = last->prev;
+    }
+    last->prev = scope[top];
     scope[top] = steptr;
 }
 

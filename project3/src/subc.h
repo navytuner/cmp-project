@@ -13,6 +13,8 @@
 #include <strings.h>
 #include <string.h>
 
+#define INIT_SCOPE_SZ 10
+
 /* DECL CLASS*/
 #define DECL_VAR 0
 #define DECL_CONST 1
@@ -26,11 +28,6 @@
 #define TYPE_ARRAY 7
 #define TYPE_POINTER 8
 #define TYPE_STRUCT 9
-
-extern ste_t** scope;
-extern decl_t *int_tdecl;
-extern decl_t *float_tdecl;
-extern decl_t *char_tdecl;
 
 
 typedef struct id {
@@ -66,29 +63,35 @@ typedef struct decl {
   struct decl *next;        // for list_of_variables declarations
 } decl_t;
 
-// Hash table interfaces
+extern ste_t** scope;
+extern decl_t *int_tdecl;
+extern decl_t *float_tdecl;
+extern decl_t *char_tdecl;
+
+/* hash.c */
 void init_hash(void);
 unsigned hash(char *name);
 id *enter(int tokenType, char *name, int length);
 
-// decl.c
-void init_scope(int cap=10);
+/* decl.c */
+void init_scope(int cap);
 void push_scope(void);
-ste_t* pop_scope(int isfree=1);
+ste_t* pop_scope(int isfree);
 void finish_scope(void);
-
 void insert(ste_t *);
+void insert_list(ste_t *);
 ste_t* declare(id*, decl_t*);
 
-// make decl
 decl_t* make_vardecl(decl_t *tdecl);
 decl_t* make_constdecl(decl_t *tdecl);
-
+decl_t* make_funcdecl(ste_t *arglist, decl_t *rettype);
 decl_t* make_arrdecl(int, decl_t *tdecl);
 decl_t* make_ptrdecl(decl_t *target);
 decl_t* make_structdecl(ste_t *ste);
-
 void init_type(void);
+
+/* type.c */
+
 
 // Error message printing procedures
 void error_preamble(void);

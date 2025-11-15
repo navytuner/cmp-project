@@ -13,6 +13,7 @@
 int   yylex();
 int   yyerror(char* s);
 int   get_lineno();
+char* get_filename();
 char* yyget_text();
 void  reduce(char* s);
 %}
@@ -30,7 +31,7 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%type<declptr>    type_specifier struct_specifier
+%type<declptr>    type_specifier struct_specifier func_decl
 %token<declptr>   TYPE
 %token            STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
 %token            LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
@@ -75,7 +76,12 @@ ext_def
     declare($2, make_constdecl(make_arrdecl($4, $1)));
   }
   | struct_specifier ';'     {}
-  | func_decl compound_stmt  {}
+  | func_decl {
+    push_scope();
+    insert_list($1->formals); 
+  } compound_stmt { 
+    pop_scope(1); 
+  }
   ;
 
 type_specifier
@@ -86,20 +92,25 @@ type_specifier
   ;
 
 struct_specifier
-  : STRUCT ID '{' { push_scope(); } 
-    def_list { 
-      $$ = make_structdecl(pop_scope(0));
-      declare($2, $$); 
-    } '}' 
+  : STRUCT ID '{' { push_scope(); } def_list { 
+    $<declptr>$ = make_structdecl(pop_scope(0));
+    declare($2, $<declptr>$); 
+  } '}' { $$ = $<declptr>6; }
   | STRUCT ID { 
-      $$ = make_structdecl(NULL); 
-      declare($2, $$);   
-    }
+    $<declptr>$ = make_structdecl(NULL); 
+    declare($2, $<declptr>$);   
+  } { $$ = $<declptr>3; }
   ;
 
 func_decl
-  : type_specifier ID '(' ')'            {}
-  | type_specifier ID '(' param_list ')' {}
+  : type_specifier ID '(' ')' {
+    $<declptr>$ = make_funcdecl(NULL, $1);
+    declare($2, $<declptr>$);
+  }
+  | type_specifier ID '(' { push_scope(); } param_list ')' { 
+    $<declptr>$ = make_funcdecl(pop_scope(0), $1);
+    declare($2, $<declptr>$);
+  }
   ;
 
 param_list
@@ -108,8 +119,10 @@ param_list
   ;
 
 param_decl
-  : type_specifier ID                        {}
-  | type_specifier ID '[' INTEGER_CONST ']'  {}
+  : type_specifier ID { declare($2, make_vardecl($1)); }
+  | type_specifier ID '[' INTEGER_CONST ']' { 
+    declare($2, make_constdecl(make_arrdecl($4, $1)));
+  }
   ;
 
 def_list
