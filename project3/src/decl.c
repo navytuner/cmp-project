@@ -86,6 +86,14 @@ decl_t* make_constdecl(decl_t *tdecl){
     return constdecl;
 }
 
+decl_t* make_funcdecl(ste_t *arglist, decl_t *rettype){
+    decl_t *funcdecl = (decl_t *)calloc(1, sizeof(decl_t));
+    funcdecl->declclass = DECL_FUNC;
+    funcdecl->formals = arglist;
+    funcdecl->returntype = rettype;
+    return funcdecl;
+}
+
 decl_t* make_arrdecl(int len, decl_t *tdecl){
     decl_t *arrdecl = (decl_t *)calloc(1, sizeof(decl_t));
     arrdecl->declclass = DECL_TYPE;

@@ -71,22 +71,18 @@ ext_def
   : type_specifier ID ';' {
     declare($2, make_vardecl($1));
   }
-  | type_specifier '*' ID ';' {
-    declare($3, make_vardecl(make_ptrdecl(NULL)));
-  }
   | type_specifier ID '[' INTEGER_CONST ']' ';' {
     declare($2, make_constdecl(make_arrdecl($4, $1)));
-  }
-  | type_specifier '*' ID '[' INTEGER_CONST ']' ';' {
-    declare($3, make_constdecl(make_arrdecl($5, make_ptrdecl(NULL))));
   }
   | struct_specifier ';'     {}
   | func_decl compound_stmt  {}
   ;
 
 type_specifier
-  : TYPE              { $$ = $1; }
-  | struct_specifier  { $$ = $1; }
+  : TYPE                  { $$ = $1; }
+  | TYPE '*'              { $$ = make_ptrdecl(NULL); }
+  | struct_specifier      { $$ = $1; }
+  | struct_specifier '*'  { $$ = make_ptrdecl(NULL); }
   ;
 
 struct_specifier
@@ -103,9 +99,7 @@ struct_specifier
 
 func_decl
   : type_specifier ID '(' ')'            {}
-  | type_specifier '*' ID '(' ')'            {}
   | type_specifier ID '(' param_list ')' {}
-  | type_specifier '*' ID '(' param_list ')' {}
   ;
 
 param_list
@@ -115,9 +109,7 @@ param_list
 
 param_decl
   : type_specifier ID                        {}
-  | type_specifier '*' ID                        {}
   | type_specifier ID '[' INTEGER_CONST ']'  {}
-  | type_specifier '*' ID '[' INTEGER_CONST ']'  {}
   ;
 
 def_list
@@ -126,10 +118,12 @@ def_list
   ;
 
 def
-  : type_specifier ID ';'                        {}
-  | type_specifier '*' ID ';'                        {}
-  | type_specifier ID '[' INTEGER_CONST ']' ';'  {}
-  | type_specifier '*' ID '[' INTEGER_CONST ']' ';'  {}
+  : type_specifier ID ';' { 
+    declare($2, make_vardecl($1)); 
+  }
+  | type_specifier ID '[' INTEGER_CONST ']' ';' { 
+    declare($2, make_constdecl(make_arrdecl($4, $1))); 
+  }
   ;
 
 compound_stmt
