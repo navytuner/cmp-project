@@ -12,12 +12,24 @@
 #include <stdio.h>
 #include <strings.h>
 
-#define CLASS_VAR 0
-#define CLASS_CONST 1
-#define CLASS_FUNC 2
-#define CLASS_TYPE 3
+/* DECL CLASS*/
+#define DECL_VAR 0
+#define DECL_CONST 1
+#define DECL_FUNC 2
+#define DECL_TYPE 3
+
+/* TYPE CLASSS */
+#define TYPE_INT 4 
+#define TYPE_FLOAT 5 
+#define TYPE_CHAR 6
+#define TYPE_ARRAY 7
+#define TYPE_POINTER 8
 
 extern ste_t** scope;
+extern decl_t *int_tdecl;
+extern decl_t *float_tdecl;
+extern decl_t *char_tdecl;
+
 
 typedef struct id {
   int tokenType;
@@ -33,6 +45,7 @@ typedef struct ste {
 
 typedef struct decl {
   int declclass;            // VAR, CONST, FUNC, TYPE
+  int typeclass;            // TYPE: type class(INT, array, ptr)
   struct decl *type;        // VAR, CONST
 
   int value;                // CONST: integer value
@@ -41,9 +54,8 @@ typedef struct decl {
   struct ste *formals;      // FUNC: formal argument list
   struct decl *returntype;  // FUNC: return TYPE decl
 
-  int typeclass;            // TYPE: type class(INT, array, ptr)
   struct decl *elementvar;  // TYPE(array): point to element VAR decl
-  int num_idx;              // TYPE(array): # of elements
+  int len_arr;              // TYPE(array): # of elements
   struct ste *fieldlist;    // TYPE(struct): point to field list
   struct decl *ptrto;       // TYPE(pointer): pointer type
 
@@ -62,8 +74,16 @@ void init_scope(void);
 void push_scope(void);
 void pop_scope(void);
 void finish_scope(void);
+
 void insert(ste_t *);
 ste_t* declare(id*, decl_t*);
+
+// make decl
+decl_t* make_vardecl(decl_t *tdecl);
+decl_t* make_constdecl(decl_t *tdecl);
+decl_t* make_arrdecl(int, decl_t *tdecl);
+decl_t* make_ptrdecl(decl_t *target);
+
 void init_type(void);
 
 // Error message printing procedures

@@ -15,6 +15,7 @@
 static int comment_depth = 0;
 static int lineno = 1;
 static char *filename;
+
 %}
 
 /* Definitions Section */
@@ -37,7 +38,9 @@ float_const   {integer_const}(\.{digit}*)?
   /* All comments in this section must be indented. */
 
   /* Keywords */
-"int" | "char"                  { yylval.stringval = strdup(yytext); return TYPE; }
+"int"                           { yylval.declptr = int_tdecl; return TYPE; }
+"float"                         { yylval.declptr = float_tdecl; return TYPE; }
+"char"                          { yylval.declptr = char_tdecl; return TYPE; }
 "struct"                        { return STRUCT; }
 "NULL"                          { return SYM_NULL; }
 "return"                        { return RETURN; }
