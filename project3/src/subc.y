@@ -91,14 +91,14 @@ type_specifier
   ;
 
 struct_specifier
-  : STRUCT ID '{' { push_scope(); } def_list { 
+  : STRUCT ID '{' { push_scope(); } def_list '}' { 
     $<declptr>$ = make_str(pop_scope(0));
-    declare($2, $<declptr>$); 
-  } '}' { $$ = $<declptr>6; }
+    declare_glob($2, $<declptr>$); 
+    $$ = $<declptr>$; 
+  }
   | STRUCT ID { 
-    $<declptr>$ = make_str(NULL); 
-    declare($2, $<declptr>$);   
-  } { $$ = $<declptr>3; }
+    $$ = lookup($2);
+  }
   ;
 
 func_decl

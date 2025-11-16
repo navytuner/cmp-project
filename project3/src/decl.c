@@ -77,6 +77,23 @@ ste_t* declare(id *idptr, decl_t *declptr){
     return newste;
 }
 
+ste_t* declare_glob(id *idptr, decl_t *declptr){
+    ste_t *newste = (ste_t *)calloc(1, sizeof(ste_t));
+    newste->id = idptr;
+    newste->decl = declptr;
+
+    newste->prev = scope[1];
+    scope[1] = newste;
+    if (top <= 1) return newste;
+
+    ste_t *cur = scope[2];
+    while (cur && cur->prev != scope[1]->prev){
+        cur = cur->prev;
+    }
+    cur->prev = scope[1];
+    return newste;
+}
+
 decl_t* find_decl(ste_t *steptr, id *idptr){
     ste_t *cur = steptr;
     while (cur){

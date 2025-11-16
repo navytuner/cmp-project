@@ -85,6 +85,7 @@ void finish_scope(void);        // free scope
 void insert(ste_t *);           // insert ste
 void insert_list(ste_t *);      // insert multiple stes
 ste_t* declare(id*, decl_t*);   // make ste & insert it
+ste_t* declare_glob(id *idptr, decl_t *declptr);  // declare as global
 decl_t* find_decl(ste_t *steptr, id *idptr);  // find id at the steptr scope
 decl_t* lookup(id *idptr);      // find idptr at the whole scope
 decl_t* lookup_cur(id *idptr);  // find idptr at the current scope
@@ -121,7 +122,7 @@ void check_strurctp(decl_t *stdecl);
 void check_member(decl_t *stdecl, id *idptr);
 void check_array(decl_t *arrdecl);
 void check_subscript(decl_t *idxdecl);
-void check_incomplete(decl_t *decl);
+void check_incomplete(id *strid);
 void check_return(decl_t *tdecl);
 void check_function(decl_t *decl);
 void check_arguments(ste_t *args, decl_t *tdecl);

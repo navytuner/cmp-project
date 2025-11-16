@@ -83,7 +83,8 @@ void check_subscript(decl_t *idxdecl){
     if (idxdecl->type != int_tdecl) error_subscript();
 }
 
-void check_incomplete(decl_t *decl){
+void check_incomplete(id *strid){
+	if (!lookup(strid)) error_incomplete();
 }
 
 void check_return(decl_t *tdecl){
