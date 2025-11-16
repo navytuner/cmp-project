@@ -79,6 +79,7 @@ ext_def
     insert_list($1->formals); 
   } compound_stmt { 
     pop_scope(1); 
+    check_return($1, );
   }
   ;
 
@@ -101,13 +102,23 @@ struct_specifier
   ;
 
 func_decl
-  : type_specifier ID '(' ')' {
-    $<declptr>$ = make_func(NULL, $1);
+  : type_specifier ID '(' {
+    $<declptr>$ = make_func($1);
     declare($2, $<declptr>$);
+    push_scope();
+    declare(returnid, $1);
+  } ')' {
+    $<declptr>4->formals = pop_scope(0);
+    $$ = $<declptr>4;
   }
-  | type_specifier ID '(' { push_scope(); } param_list ')' { 
-    $<declptr>$ = make_func(pop_scope(0), $1);
+  | type_specifier ID '(' { 
+    $<declptr>$ = make_func($1);
     declare($2, $<declptr>$);
+    push_scope(); 
+    declare(returnid, $1);
+  } param_list ')' { 
+    $<declptr>4->formals = pop_scope(0);
+    $$ = $<declptr>$;
   }
   ;
 

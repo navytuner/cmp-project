@@ -86,7 +86,11 @@ void check_subscript(decl_t *idxdecl){
 void check_incomplete(decl_t *decl){
 }
 
-void check_return(void);
+void check_return(decl_t *tdecl){
+    decl_t *func = lookup_cur(returnid);
+    if (func->returntype != tdecl) error_return();
+}
+
 void check_function(void);
 void check_arguments(void);
 

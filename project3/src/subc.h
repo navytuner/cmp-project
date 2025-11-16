@@ -66,6 +66,7 @@ typedef struct decl {
 extern ste_t** scope;
 extern decl_t *int_tdecl;
 extern decl_t *char_tdecl;
+extern id *returnid;
 
 int   get_lineno();
 char* get_filename();
@@ -90,7 +91,7 @@ decl_t* lookup_cur(id *idptr);  // find idptr at the current scope
 
 decl_t* make_var(decl_t *tdecl);
 decl_t* make_const(decl_t *tdecl);
-decl_t* make_func(ste_t *arglist, decl_t *rettype);
+decl_t* make_func(decl_t *rettype);
 decl_t* make_arr(int, decl_t *tdecl);
 decl_t* make_ptr(decl_t *target);
 decl_t* make_str(ste_t *ste);
@@ -111,7 +112,7 @@ void check_assignable(decl_t *decl);
 void check_incompatible(decl_t *decl_1, decl_t *decl_2);
 void check_null(decl_t *lhs, decl_t *rhs);
 void check_binary(decl_t *op1, decl_t *op2);
-void check_unary(decl_t *decl);
+void check_unary(decl_t *decl, int tflag);
 void check_comparable(decl_t *op1, decl_t *op2);
 void check_indirection(decl_t *op);
 void check_addressof(decl_t *op);
@@ -121,7 +122,7 @@ void check_member(decl_t *stdecl, id *idptr);
 void check_array(decl_t *arrdecl);
 void check_subscript(decl_t *idxdecl);
 void check_incomplete(decl_t *decl);
-void check_return(void);
+void check_return(decl_t *tdecl);
 void check_function(void);
 void check_arguments(void);
 

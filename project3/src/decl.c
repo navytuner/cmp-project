@@ -10,6 +10,7 @@ int capacity;
 decl_t *int_tdecl;
 decl_t *float_tdecl;
 decl_t *char_tdecl;
+id *returnid;
 
 void init_scope(int cap){
     top = 0;
@@ -112,10 +113,9 @@ decl_t* make_const(decl_t *tdecl){
     return constdecl;
 }
 
-decl_t* make_func(ste_t *arglist, decl_t *rettype){
+decl_t* make_func(decl_t *rettype){
     decl_t *funcdecl = (decl_t *)calloc(1, sizeof(decl_t));
     funcdecl->declclass = DECL_FUNC;
-    funcdecl->formals = arglist;
     funcdecl->returntype = rettype;
     return funcdecl;
 }
@@ -187,8 +187,11 @@ void init_type(void){
                 char_tdecl = declptr;
                 break;
         }
-        insert(declare(idptr, declptr));
+        declare(idptr, declptr);
     }
+
+    // make returnid
+    returnid = enter(ID, "*return", 7);
 }
 
 decl_t* accarr(decl_t *arrdecl, decl_t *idxdecl){
