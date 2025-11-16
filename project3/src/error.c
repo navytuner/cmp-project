@@ -1,116 +1,185 @@
 #include "subc.h"
 #include "subc.tab.h"
 
-void check_preamble(void);
-void check_undeclared(id *idptr){
-    if (!lookup(idptr)) error_undeclared();
+int check_undeclared(id *idptr){
+    if (!lookup(idptr)) {
+		error_undeclared();
+		return 1;
+	}
+	return 0;
 }
 
-void check_redeclaration(id *idptr){
-    if (lookup_cur(idptr)) error_redeclaration();
+int check_redeclaration(id *idptr){
+    if (lookup_cur(idptr)) {
+		error_redeclaration();
+		return 1;
+	}
+	return 0;
 }
 
-void check_assignable(decl_t *decl){
-    if (decl->declclass != DECL_VAR) error_assignable();
+int check_assignable(decl_t *decl){
+    if (decl->declclass != DECL_VAR) {
+		error_assignable();
+		return 1;
+	}
+	return 0;
 }
 
-void check_incompatible(decl_t *decl_1, decl_t *decl_2){
-    if (decl_1->type->typeclass != decl_2->type->typeclass) error_incompatible();
+int check_incompatible(decl_t *decl_1, decl_t *decl_2){
+    if (decl_1->type->typeclass != decl_2->type->typeclass) {
+		error_incompatible();
+		return 1;
+	}
+	return 0;
 }
 
-void check_null(decl_t *lhs, decl_t *rhs){
+int check_null(decl_t *lhs, decl_t *rhs){
     if (rhs->declclass == DECL_NULL && 
-        lhs->type->typeclass != TYPE_PTR) error_null();
+		lhs->type->typeclass != TYPE_PTR)
+	{
+		error_null();
+		return 1;
+	}
+	return 0;
 }
 
-void check_binary(decl_t *op1, decl_t *op2){
+int check_binary(decl_t *op1, decl_t *op2){
     if (op1->type->typeclass != TYPE_INT ||
-        op2->type->typeclass != TYPE_INT) error_binary();
+		op2->type->typeclass != TYPE_INT) 
+	{
+		error_binary();
+		return 1;
+	}
+	return 0;
 }
 
-void check_unary(decl_t *decl, int tflag){
+int check_unary(decl_t *decl, int tflag){
     // type should be TYPE_INT or TYPE_CHAR
     int type = decl->type->typeclass;
     switch (tflag){
         case TYPE_INT | TYPE_CHAR:
             if (type != TYPE_INT && type != TYPE_CHAR)
                 error_unary();
-            break;
+				return 1;
         case TYPE_INT:
             if (type != TYPE_INT)
                 error_unary();
-            break;
+				return 1;
         case TYPE_CHAR:
             if (type != TYPE_CHAR)
                 error_unary();
-            break;
+				return 1;
+		default:
+			return 0;
     }
 }
 
-void check_comparable(decl_t *op1, decl_t *op2){
+int check_comparable(decl_t *op1, decl_t *op2){
     int type1 = op1->type->typeclass;
     int type2 = op2->type->typeclass;
-    if (type1 == TYPE_INT && type2 == TYPE_INT) return;
-    if (type1 == TYPE_CHAR && type2 == TYPE_CHAR) return;
+    if (type1 == TYPE_INT && type2 == TYPE_INT) return 0;
+    if (type1 == TYPE_CHAR && type2 == TYPE_CHAR) return 0;
     error_comparable();
+	return 1;
 }
 
-void check_indirection(decl_t *op){
-    if (op->type->typeclass != TYPE_PTR) error_indirection();
+int check_indirection(decl_t *op){
+    if (op->type->typeclass != TYPE_PTR) {
+		error_indirection();
+		return 1;
+	}
+	return 0;
 }
 
-void check_addressof(decl_t *op){
-    if (op->declclass != DECL_VAR) error_addressof();
+int check_addressof(decl_t *op){
+    if (op->declclass != DECL_VAR) {
+		error_addressof();
+		return 1;
+	}
+	return 0;
 }
 
-void check_struct(decl_t *stdecl){
-    if (stdecl->type->typeclass != TYPE_STRUCT) error_struct();
+int check_struct(decl_t *stdecl){
+    if (stdecl->type->typeclass != TYPE_STRUCT) {
+		error_struct();
+		return 1;
+	}
+	return 0;
 }
 
-void check_strurctp(decl_t *strptr){
-    if (strptr->type->typeclass != TYPE_STRPTR) error_strurctp();
+int check_strurctp(decl_t *strptr){
+    if (strptr->type->typeclass != TYPE_STRPTR) {
+		error_strurctp();
+		return 1;
+	}
+	return 0;
 }
 
-void check_member(decl_t *stdecl, id *idptr){
-    if (!find_decl(stdecl->fields, idptr)) error_member();
+int check_member(decl_t *stdecl, id *idptr){
+    if (!find_decl(stdecl->fields, idptr)) {
+		error_member();
+		return 1;
+	}
+	return 0;
 }
 
-void check_array(decl_t *arrdecl){
-    if (arrdecl->type->typeclass != TYPE_ARRAY) error_array();
+int check_array(decl_t *arrdecl){
+    if (arrdecl->type->typeclass != TYPE_ARRAY) {
+		error_array();
+		return 1;
+	}
+	return 0;
 }
 
-void check_subscript(decl_t *idxdecl){
-    if (idxdecl->type != int_tdecl) error_subscript();
+int check_subscript(decl_t *idxdecl){
+    if (idxdecl->type != int_tdecl) {
+		error_subscript();
+		return 1;
+	}
+	return 0;
 }
 
-void check_incomplete(id *strid){
-	if (!lookup(strid)) error_incomplete();
+int check_incomplete(id *strid){
+	if (!lookup(strid)) {
+		error_incomplete();
+		return 1;
+	}
+	return 0;
 }
 
-void check_return(decl_t *tdecl){
+int check_return(decl_t *tdecl){
     decl_t *func = lookup_cur(returnid);
-    if (func->returntype != tdecl) error_return();
+    if (func->returntype != tdecl) {
+		error_return();
+		return 1;
+	}
+	return 0;
 }
 
-void check_function(decl_t *decl){
-    if (decl->declclass != DECL_FUNC) error_function();
+int check_function(decl_t *decl){
+    if (decl->declclass != DECL_FUNC) {
+		error_function();
+		return 1;
+	}
+	return 0;
 }
 
-void check_arguments(ste_t *args, decl_t *tdecl){
+int check_arguments(ste_t *args, decl_t *tdecl){
     decl_t *cur = tdecl;
     ste_t *arglist = args;
     while (cur || arglist){
         if (!cur || !arglist){
             error_arguments();
-            return;
+            return 1;
         }
         if (cur->typeclass != arglist->decl->type->typeclass) {
             error_arguments();
-            return;
+            return 1;
         }
         cur = cur->next;
         arglist = arglist->prev;
     }
+	return 0;
 }
 
 // Print the preamble of error message.

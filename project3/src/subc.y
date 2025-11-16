@@ -198,7 +198,7 @@ unary
   | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->int_value = $1; }
   | CHAR_CONST            { $$ = make_const(char_tdecl); $$->char_value = $1; }
   | STRING                {} 
-  | ID                    { $$ = lookup($1); }
+  | ID                    { check_undeclared($1); $$ = lookup($1); }
   | '-' unary %prec '!'   {}
   | '!' unary             {}
   | unary INCOP %prec '.' {}
@@ -210,8 +210,8 @@ unary
   | unary '[' expr ']'    { $$ = accarr($1, $3); }
   | unary '.' ID          { $$ = accstruct($1, $3); }
   | unary STRUCTOP ID     {}
-  | unary '(' args ')'    {}
-  | unary '(' ')'         {}
+  | unary '(' args ')'    { check_function($1); check_arguments(, $3)}
+  | unary '(' ')'         { check_function($1); }
   | SYM_NULL              { $$ = make_null(); }
   ;
 

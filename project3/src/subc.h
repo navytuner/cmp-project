@@ -106,26 +106,25 @@ decl_t* accstruct(decl_t *stdecl, id *fieldid);
 
 /* error.c */
 // check errors
-void check_preamble(void);
-void check_undeclared(id *idptr);
-void check_redeclaration(id *idptr);
-void check_assignable(decl_t *decl);
-void check_incompatible(decl_t *decl_1, decl_t *decl_2);
-void check_null(decl_t *lhs, decl_t *rhs);
-void check_binary(decl_t *op1, decl_t *op2);
-void check_unary(decl_t *decl, int tflag);
-void check_comparable(decl_t *op1, decl_t *op2);
-void check_indirection(decl_t *op);
-void check_addressof(decl_t *op);
-void check_struct(decl_t *stdecl);
-void check_strurctp(decl_t *stdecl);
-void check_member(decl_t *stdecl, id *idptr);
-void check_array(decl_t *arrdecl);
-void check_subscript(decl_t *idxdecl);
-void check_incomplete(id *strid);
-void check_return(decl_t *tdecl);
-void check_function(decl_t *decl);
-void check_arguments(ste_t *args, decl_t *tdecl);
+int check_undeclared(id *idptr);
+int check_redeclaration(id *idptr);
+int check_assignable(decl_t *decl);
+int check_incompatible(decl_t *decl_1, decl_t *decl_2);
+int check_null(decl_t *lhs, decl_t *rhs);
+int check_binary(decl_t *op1, decl_t *op2);
+int check_unary(decl_t *decl, int tflag);
+int check_comparable(decl_t *op1, decl_t *op2);
+int check_indirection(decl_t *op);
+int check_addressof(decl_t *op);
+int check_struct(decl_t *stdecl);
+int check_strurctp(decl_t *stdecl);
+int check_member(decl_t *stdecl, id *idptr);
+int check_array(decl_t *arrdecl);
+int check_subscript(decl_t *idxdecl);
+int check_incomplete(id *strid);
+int check_return(decl_t *tdecl);
+int check_function(decl_t *decl);
+int check_arguments(ste_t *args, decl_t *tdecl);
 
 // print error message
 void error_preamble(void);
