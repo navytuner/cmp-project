@@ -18,14 +18,17 @@ int check_redeclaration(id *idptr) {
 }
 
 int check_assignable(decl_t *decl) {
-  if (decl->declclass != DECL_VAR) {
-    error_assignable();
-    return 1;
-  }
-  return 0;
+  if (decl && decl->declclass == DECL_VAR)
+    return 0;
+  error_assignable();
+  return 1;
 }
 
 int check_incompatible(decl_t *lhs, decl_t *rhs) {
+  if (!lhs || !lhs->type || !rhs || !rhs->type) {
+    error_incompatible();
+    return 1;
+  }
   if (lhs->type->typeclass != rhs->type->typeclass) {
     error_incompatible();
     return 1;
@@ -41,10 +44,28 @@ int check_null(decl_t *lhs, decl_t *rhs) {
   return 0;
 }
 
-int check_binary(decl_t *op1, decl_t *op2) {
-  if (op1->type->typeclass != TYPE_INT || op2->type->typeclass != TYPE_INT) {
+int check_binary(decl_t *op1, decl_t *op2, int tflag) {
+  int type1 = op1->type->typeclass;
+  int type2 = op2->type->typeclass;
+
+  if (type1 != type2) {
     error_binary();
     return 1;
+  }
+
+  switch (tflag) {
+  case TYPE_INT:
+    if (type1 != TYPE_INT) {
+      error_binary();
+      return 1;
+    }
+    break;
+  case TYPE_CHAR:
+    if (type1 != TYPE_CHAR) {
+      error_binary();
+      return 1;
+    }
+    break;
   }
   return 0;
 }
@@ -53,32 +74,50 @@ int check_unary(decl_t *decl, int tflag) {
   // type should be TYPE_INT or TYPE_CHAR
   int type = decl->type->typeclass;
   switch (tflag) {
-  case TYPE_INT | TYPE_CHAR:
-    if (type != TYPE_INT && type != TYPE_CHAR)
+  case (TYPE_INT | TYPE_CHAR):
+    if (type != TYPE_INT && type != TYPE_CHAR) {
       error_unary();
-    return 1;
+      return 1;
+    }
+    break;
   case TYPE_INT:
-    if (type != TYPE_INT)
+    if (type != TYPE_INT) {
       error_unary();
-    return 1;
+      return 1;
+    }
+    break;
   case TYPE_CHAR:
-    if (type != TYPE_CHAR)
+    if (type != TYPE_CHAR) {
       error_unary();
-    return 1;
-  default:
-    return 0;
+      return 1;
+    }
+    break;
   }
+  return 0;
 }
 
-int check_comparable(decl_t *op1, decl_t *op2) {
+int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
   int type1 = op1->type->typeclass;
   int type2 = op2->type->typeclass;
-  if (type1 == TYPE_INT && type2 == TYPE_INT)
-    return 0;
-  if (type1 == TYPE_CHAR && type2 == TYPE_CHAR)
-    return 0;
-  error_comparable();
-  return 1;
+  if (type1 != type2) {
+    error_comparable();
+    return 1;
+  }
+  switch (tflag) {
+  case (TYPE_INT | TYPE_CHAR):
+    if (type1 != TYPE_INT && type1 != TYPE_CHAR) {
+      error_comparable();
+      return 1;
+    }
+    break;
+  case (TYPE_INT | TYPE_CHAR | TYPE_PTR):
+    if (type1 != TYPE_INT && type1 != TYPE_CHAR && type1 != TYPE_PTR) {
+      error_comparable();
+      return 1;
+    }
+    break;
+  }
+  return 0;
 }
 
 int check_indirection(decl_t *op) {
@@ -105,12 +144,14 @@ int check_struct(decl_t *stdecl) {
   return 0;
 }
 
-int check_strurctp(decl_t *strptr) {
-  if (strptr->type->typeclass != TYPE_STRPTR) {
-    error_strurctp();
-    return 1;
+int check_structp(decl_t *strptr) {
+  decl_t *tdecl = strptr->type;
+  if (tdecl && tdecl->typeclass == TYPE_PTR) {
+    if (tdecl->ptrto && tdecl->ptrto->typeclass == TYPE_STRUCT)
+      return 0;
   }
-  return 0;
+  error_structp();
+  return 1;
 }
 
 int check_member(decl_t *stdecl, id *idptr) {
@@ -242,7 +283,7 @@ void error_struct(void) {
   printf("member reference base type is not a struct\n");
 }
 
-void error_strurctp(void) {
+void error_structp(void) {
   error_preamble();
   printf("member reference base type is not a struct pointer\n");
 }

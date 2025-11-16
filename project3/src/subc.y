@@ -92,12 +92,11 @@ type_specifier
 
 struct_specifier
   : STRUCT ID '{' { push_scope(); } def_list '}' { 
-    $<declptr>$ = make_str(pop_scope(0));
-    declare_glob($2, $<declptr>$); 
-    $$ = $<declptr>$; 
+    $$ = make_str(pop_scope(0));
+    declare_glob($2, $$); 
   }
   | STRUCT ID { 
-    $$ = lookup($2);
+    $$ = (!check_incomplete($2))? lookup($2) : NULL;
   }
   ;
 
@@ -142,7 +141,7 @@ def_list
 def
   : type_specifier ID ';' { 
     if (check_redeclaration($2)) return;
-    declare($2, make_var($1)); 
+    declare($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
     if (check_redeclaration($2)) return;
@@ -187,16 +186,22 @@ expr
   ;
 
 binary
-  : binary RELOP binary       {}
-  | binary EQUOP binary       {}
-  | binary '+' binary { check_binary($1, $3); }
-  | binary '-' binary         {}
-  | binary '*' binary         {}
-  | binary '/' binary         {}
-  | binary '%' binary         {}
+  : binary RELOP binary {
+    check_comparable($1, $3, (TYPE_INT | TYPE_CHAR));
+    $$ = int_tdecl;
+  }
+  | binary EQUOP binary {
+    check_comparable($1, $3, (TYPE_INT | TYPE_CHAR | TYPE_PTR));
+    $$ = int_tdecl;
+  }
+  | binary '+' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
+  | binary '-' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
+  | binary '*' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
+  | binary '/' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
+  | binary '%' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
   | unary %prec '='           { $$ = $1->type; }
-  | binary LOGICAL_AND binary {}
-  | binary LOGICAL_OR binary  {}
+  | binary LOGICAL_AND binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
+  | binary LOGICAL_OR binary  { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
   ;
 
 unary
@@ -205,17 +210,17 @@ unary
   | CHAR_CONST            { $$ = make_const(char_tdecl); $$->charval = $1; }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 
   | ID                    { check_undeclared($1); $$ = lookup($1); }
-  | '-' unary %prec '!'   {}
-  | '!' unary             {}
-  | unary INCOP %prec '.' {}
-  | unary DECOP %prec '.' {}
-  | INCOP unary           {}
-  | DECOP unary           {}
-  | '&' unary             {}
-  | '*' unary %prec '!'   {}
-  | unary '[' expr ']'    { $$ = accarr($1, $3); }
-  | unary '.' ID          { $$ = accstruct($1, $3); }
-  | unary STRUCTOP ID     {}
+  | '-' unary %prec '!'   { check_unary($2, TYPE_INT); }
+  | '!' unary             { check_unary($2, TYPE_INT); }
+  | unary INCOP %prec '.' { check_unary($1, TYPE_INT | TYPE_CHAR); }
+  | unary DECOP %prec '.' { check_unary($1, TYPE_INT | TYPE_CHAR); }
+  | INCOP unary           { check_unary($2, TYPE_INT | TYPE_CHAR); }
+  | DECOP unary           { check_unary($2, TYPE_INT | TYPE_CHAR); }
+  | '&' unary             { check_addressof($2); }
+  | '*' unary %prec '!'   { check_indirection($2); }
+  | unary '[' expr ']'    { $$ = access_arr($1, $3); }
+  | unary '.' ID          { $$ = access_struct($1, $3); }
+  | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
   | unary '(' args ')'    { if (check_function($1)) return; check_arguments($1->formals, $3); }
   | unary '(' ')'         { check_function($1); }
   | SYM_NULL              { $$ = make_null(); }

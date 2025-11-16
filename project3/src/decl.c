@@ -209,15 +209,21 @@ void init_type(void) {
   returnid = enter(ID, "*return", 7);
 }
 
-decl_t *accarr(decl_t *arrdecl, decl_t *idxdecl) {
+decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl) {
   decl_t *tdecl = arrdecl->type;
-  if (check_array(arrdecl))
-    check_subscript(idxdecl);
+  if (check_array(arrdecl) || check_subscript(idxdecl))
+    return NULL;
   return tdecl->elementvar;
 }
 
-decl_t *accstruct(decl_t *stdecl, id *fieldid) {
-  if (check_struct(stdecl))
-    check_member(stdecl, fieldid);
+decl_t *access_struct(decl_t *stdecl, id *fieldid) {
+  if (check_struct(stdecl) || check_member(stdecl, fieldid))
+    return NULL;
   return find_decl(stdecl->fields, fieldid);
+}
+
+decl_t *access_structp(decl_t *ptr, id *fieldid) {
+  if (check_structp(ptr) || check_member(ptr->type->ptrto, fieldid))
+    return NULL;
+  return find_decl(ptr->type->ptrto->fields, fieldid);
 }

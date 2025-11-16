@@ -26,8 +26,8 @@
 #define TYPE_INT 1
 #define TYPE_CHAR 2
 #define TYPE_STRING 3
-#define TYPE_ARRAY 4
-#define TYPE_PTR 5
+#define TYPE_PTR 4
+#define TYPE_ARRAY 5
 #define TYPE_STRUCT 6
 
 typedef struct id {
@@ -102,8 +102,9 @@ decl_t *make_null(void);
 void init_type(void);
 
 // access
-decl_t *accarr(decl_t *arrdecl, decl_t *idxdecl);
-decl_t *accstruct(decl_t *stdecl, id *fieldid);
+decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl);
+decl_t *access_struct(decl_t *stdecl, id *fieldid);
+decl_t *access_structp(decl_t *stdecl, id *fieldid);
 
 /* error.c */
 // check errors
@@ -112,13 +113,13 @@ int check_redeclaration(id *idptr);
 int check_assignable(decl_t *decl);
 int check_incompatible(decl_t *lhs, decl_t *rhs);
 int check_null(decl_t *lhs, decl_t *rhs);
-int check_binary(decl_t *op1, decl_t *op2);
+int check_binary(decl_t *op1, decl_t *op2, int tflag);
 int check_unary(decl_t *decl, int tflag);
-int check_comparable(decl_t *op1, decl_t *op2);
+int check_comparable(decl_t *op1, decl_t *op2, int tflag);
 int check_indirection(decl_t *op);
 int check_addressof(decl_t *op);
 int check_struct(decl_t *stdecl);
-int check_strurctp(decl_t *stdecl);
+int check_structp(decl_t *stdecl);
 int check_member(decl_t *stdecl, id *idptr);
 int check_array(decl_t *arrdecl);
 int check_subscript(decl_t *idxdecl);
@@ -140,7 +141,7 @@ void error_comparable(void);
 void error_indirection(void);
 void error_addressof(void);
 void error_struct(void);
-void error_strurctp(void);
+void error_structp(void);
 void error_member(void);
 void error_array(void);
 void error_subscript(void);
