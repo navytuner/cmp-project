@@ -252,18 +252,18 @@ int check_arguments(decl_t *func, decl_t *tdecl) {
     return 0;
 
   decl_t *cur = tdecl;
-  ste_t *arglist = func->formals;
-  while (cur || arglist) {
-    if (!cur || !arglist) {
+  ste_t *paramlist = func->formals;
+  while (cur || paramlist) {
+    if (!cur || !paramlist) {
       error_arguments();
       return 1;
     }
-    if (cur->typeclass != arglist->decl->type->typeclass) {
+    if (cur->typeclass != paramlist->decl->type->typeclass) {
       error_arguments();
       return 1;
     }
     cur = cur->next;
-    arglist = arglist->prev;
+    paramlist = paramlist->prev;
   }
   return 0;
 }

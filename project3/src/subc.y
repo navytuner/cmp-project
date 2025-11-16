@@ -241,14 +241,14 @@ unary
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
-  | unary '(' args ')'    { if (check_function($1)) return; check_arguments($1->formals, $3); }
-  | unary '(' ')'         { check_function($1); }
+  | unary '(' args ')'    { $$ = access_function($1, $3); } 
+  | unary '(' ')'         { $$ = access_function($1, NULL) }
   | SYM_NULL              { $$ = make_null(); }
   ;
 
 args
   : expr          { $$ = $1; }
-  | args ',' expr { $3->next = $1; $$ = $3; }
+  | args ',' expr { $3->next = $1; $$ = $3; } /* reverse order */
   ;
 
 %%

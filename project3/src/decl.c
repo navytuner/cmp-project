@@ -231,4 +231,8 @@ decl_t *access_structp(decl_t *ptr, id *fieldid) {
   return find_decl(ptr->type->ptrto->fields, fieldid);
 }
 
-decl_t *access_function(decl_t *func, decl_t *args) {}
+decl_t *access_function(decl_t *func, decl_t *args) {
+  if (check_function(func) || check_arguments(func, args))
+    return pass_tdecl;
+  return func->returntype;
+}

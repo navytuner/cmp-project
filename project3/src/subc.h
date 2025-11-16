@@ -107,7 +107,7 @@ decl_t *make_null(void);
 decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl);
 decl_t *access_struct(decl_t *stdecl, id *fieldid);
 decl_t *access_structp(decl_t *stdecl, id *fieldid);
-decl_t *access_function();
+decl_t *access_function(decl_t *func, decl_t *args);
 
 /* error.c */
 // check errors
