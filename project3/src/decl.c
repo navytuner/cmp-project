@@ -216,12 +216,6 @@ decl_t *make_str(ste_t *fields) {
   return structdecl;
 }
 
-// decl_t *make_null(void) {
-//   decl_t *nulldecl = (decl_t *)calloc(1, sizeof(decl_t));
-//   nulldecl->declclass = DECL_NULL;
-//   return nulldecl;
-// }
-
 decl_t *make_arg(decl_t *tdecl, decl_t *nextarg) {
   decl_t *newarg = make_var(tdecl);
   newarg->next = nextarg;

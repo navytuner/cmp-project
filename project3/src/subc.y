@@ -236,7 +236,7 @@ unary
   | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : make_var(pass_tdecl); }
   | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_var(pass_tdecl); }
   | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_var(pass_tdecl); }
-  | '&' unary             { $$ = (!check_addressof($2))? make_ptr($2->type) : make_var(pass_tdecl); }
+  | '&' unary             { $$ = (!check_addressof($2))? make_var(make_ptr($2->type)) : make_var(pass_tdecl); }
   | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_var($2->type->ptrto) : make_var(pass_tdecl); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
