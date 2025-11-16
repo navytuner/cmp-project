@@ -179,7 +179,7 @@ expr_e
 expr
   : unary '=' expr {
     if (check_assignable($1) || check_null($1, $3) || check_incompatible($1, $3)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = $3;
   }
   | binary { $$ = $1; }
   ;

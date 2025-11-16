@@ -231,25 +231,25 @@ decl_t *make_arg(decl_t *tdecl, decl_t *nextarg) {
 decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl) {
   decl_t *tdecl = arrdecl->type;
   if (check_array(arrdecl) || check_subscript(idxdecl))
-    return pass_tdecl;
+    return make_var(pass_tdecl);
   return tdecl->elementvar;
 }
 
 decl_t *access_struct(decl_t *stdecl, id *fieldid) {
   if (check_struct(stdecl) || check_member(stdecl, fieldid))
-    return pass_tdecl;
+    return make_var(pass_tdecl);
   return find_decl(stdecl->fields, fieldid);
 }
 
 decl_t *access_structp(decl_t *ptr, id *fieldid) {
   if (check_structp(ptr) || check_member(ptr->type->ptrto, fieldid))
-    return pass_tdecl;
+    return make_var(pass_tdecl);
   return find_decl(ptr->type->ptrto->fields, fieldid);
 }
 
 decl_t *access_function(decl_t *func, decl_t *args) {
   if (check_function(func) || check_arguments(func, args))
-    return pass_tdecl;
+    return make_var(pass_tdecl);
   func->type = func->returntype;
   return func;
 }

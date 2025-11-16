@@ -4,6 +4,8 @@
 int ispass(decl_t *tdecl) { return (tdecl == pass_tdecl); }
 
 int issametype(decl_t *tdecl1, decl_t *tdecl2) {
+  if (!tdecl1 || !tdecl2)
+    return 0;
   if (tdecl1 == tdecl2)
     return 1;
   if (tdecl1->typeclass == TYPE_PTR && tdecl2->typeclass == TYPE_PTR &&
@@ -259,8 +261,7 @@ int check_arguments(decl_t *func, decl_t *args) {
   decl_t *arg = args;
   ste_t *param = func->formals;
   while (param && arg) {
-    decl_t *paramdecl = param->decl;
-    if (param->decl->type != arg->type) {
+    if (!issametype(param->decl->type, arg->type)) {
       error_arguments();
       return 1;
     }
