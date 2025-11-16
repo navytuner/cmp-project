@@ -10,6 +10,8 @@ int capacity;
 decl_t *int_tdecl;
 decl_t *float_tdecl;
 decl_t *char_tdecl;
+decl_t *string_tdecl;
+decl_t *pass_tdecl;
 id *returnid;
 
 void init_scope(int cap) {

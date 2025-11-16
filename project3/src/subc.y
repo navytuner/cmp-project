@@ -76,10 +76,10 @@ ext_def
   | struct_specifier ';'     {}
   | func_decl {
     push_scope();
-    insert_list($1->formals); 
+    insert_ste_list($1->formals); 
   } compound_stmt { 
     pop_scope(1); 
-    check_return($1, );
+    check_return($1);
   }
   ;
 
@@ -140,12 +140,10 @@ def_list
 
 def
   : type_specifier ID ';' { 
-    if (check_redeclaration($2)) return;
-    declare($2, make_var($1));
+    if (!check_redeclaration($2)) declare($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
-    if (check_redeclaration($2)) return;
-    declare($2, make_const(make_arr($4, $1))); 
+    if (!check_redeclaration($2)) declare($2, make_const(make_arr($4, $1))); 
   }
   ;
 
@@ -215,11 +213,11 @@ binary
   } 
   | unary %prec '=' { $$ = $1->type; }
   | binary LOGICAL_AND binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = = pass_tdecl 
+    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
     else $$ = $1;
   }
   | binary LOGICAL_OR binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = = pass_tdecl 
+    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
     else $$ = $1;
   }
   ;
@@ -242,7 +240,7 @@ unary
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
   | unary '(' args ')'    { $$ = access_function($1, $3); } 
-  | unary '(' ')'         { $$ = access_function($1, NULL) }
+  | unary '(' ')'         { $$ = access_function($1, NULL); }
   | SYM_NULL              { $$ = make_null(); }
   ;
 

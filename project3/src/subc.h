@@ -87,8 +87,8 @@ void init_type(void);
 void push_scope(void);
 ste_t *pop_scope(int isfree);
 void finish_scope(void);                         // free scope
-void insert(ste_t *);                            // insert ste
-void insert_list(ste_t *);                       // insert multiple stes
+void insert_ste(ste_t *);                        // insert ste
+void insert_ste_list(ste_t *);                   // insert multiple stes
 ste_t *declare(id *, decl_t *);                  // make ste & insert it
 ste_t *declare_glob(id *idptr, decl_t *declptr); // declare as global
 decl_t *find_decl(ste_t *steptr, id *idptr);     // find id at the steptr scope
