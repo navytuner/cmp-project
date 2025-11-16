@@ -1,7 +1,7 @@
 /*
  * File Name    : subc.h
  * Description  : A header file for the subc program.
- * 
+ *
  * Course       : Introduction to Compilers
  * Dept. of Electrical and Computer Engineering, Seoul National University
  */
@@ -10,8 +10,8 @@
 #define __SUBC_H__
 
 #include <stdio.h>
-#include <strings.h>
 #include <string.h>
+#include <strings.h>
 
 #define INIT_SCOPE_SZ 10
 
@@ -23,12 +23,12 @@
 #define DECL_NULL 4
 
 /* TYPE CLASSS */
-#define TYPE_INT 1 
+#define TYPE_INT 1
 #define TYPE_CHAR 2
-#define TYPE_ARRAY 3
-#define TYPE_PTR 4
-#define TYPE_STRUCT 5
-#define TYPE_STRPTR 6
+#define TYPE_STRING 3
+#define TYPE_ARRAY 4
+#define TYPE_PTR 5
+#define TYPE_STRUCT 6
 
 typedef struct id {
   int tokenType;
@@ -43,33 +43,35 @@ typedef struct ste {
 } ste_t;
 
 typedef struct decl {
-  int declclass;            // VAR, CONST, FUNC, TYPE
-  struct decl *type;        // VAR, CONST
+  int declclass;     // VAR, CONST, FUNC, TYPE
+  struct decl *type; // VAR, CONST
 
-  int int_value;            // CONST: integer value
-  char char_value;          // CONST: char value
+  int intval;      // CONST: integer value
+  char charval;    // CONST: char value
+  char *stringval; // CONST: string value
 
-  struct ste *formals;      // FUNC: formal argument list
-  struct decl *returntype;  // FUNC: return TYPE decl
+  struct ste *formals;     // FUNC: formal argument list
+  struct decl *returntype; // FUNC: return TYPE decl
 
-  int typeclass;            // TYPE: type class(INT, array, ptr)
-  struct decl *elementvar;  // TYPE(array): point to element VAR decl
-  int len_arr;              // TYPE(array): # of elements
-  struct ste *fields;       // TYPE(struct): point to field list
-  struct decl *ptrto;       // TYPE(pointer): pointer type
+  int typeclass;           // TYPE: type class(INT, array, ptr)
+  struct decl *elementvar; // TYPE(array): point to element VAR decl
+  int len_arr;             // TYPE(array): # of elements
+  struct ste *fields;      // TYPE(struct): point to field list
+  struct decl *ptrto;      // TYPE(pointer): pointer type
 
-  int size;                 // ALL: size in bytes
-  struct ste **scope;       // VAR: scope when VAR declared
-  struct decl *next;        // for list_of_variables declarations
+  int size;           // ALL: size in bytes
+  struct ste **scope; // VAR: scope when VAR declared
+  struct decl *next;  // for list_of_variables declarations
 } decl_t;
 
-extern ste_t** scope;
+extern ste_t **scope;
 extern decl_t *int_tdecl;
 extern decl_t *char_tdecl;
+extern decl_t *string_tdecl;
 extern id *returnid;
 
-int   get_lineno();
-char* get_filename();
+int get_lineno();
+char *get_filename();
 
 /* hash.c */
 void init_hash(void);
@@ -80,36 +82,35 @@ id *enter(int tokenType, char *name, int length);
 // scope functions
 void init_scope(int cap);
 void push_scope(void);
-ste_t* pop_scope(int isfree);
-void finish_scope(void);        // free scope
-void insert(ste_t *);           // insert ste
-void insert_list(ste_t *);      // insert multiple stes
-ste_t* declare(id*, decl_t*);   // make ste & insert it
-ste_t* declare_glob(id *idptr, decl_t *declptr);  // declare as global
-decl_t* find_decl(ste_t *steptr, id *idptr);  // find id at the steptr scope
-decl_t* lookup(id *idptr);      // find idptr at the whole scope
-decl_t* lookup_cur(id *idptr);  // find idptr at the current scope
+ste_t *pop_scope(int isfree);
+void finish_scope(void);                         // free scope
+void insert(ste_t *);                            // insert ste
+void insert_list(ste_t *);                       // insert multiple stes
+ste_t *declare(id *, decl_t *);                  // make ste & insert it
+ste_t *declare_glob(id *idptr, decl_t *declptr); // declare as global
+decl_t *find_decl(ste_t *steptr, id *idptr);     // find id at the steptr scope
+decl_t *lookup(id *idptr);     // find idptr at the whole scope
+decl_t *lookup_cur(id *idptr); // find idptr at the current scope
 
-decl_t* make_var(decl_t *tdecl);
-decl_t* make_const(decl_t *tdecl);
-decl_t* make_func(decl_t *rettype);
-decl_t* make_arr(int, decl_t *tdecl);
-decl_t* make_ptr(decl_t *target);
-decl_t* make_str(ste_t *ste);
-decl_t* make_strptr(decl_t *strdecl, decl_t *target);
-decl_t* make_null(void);
+decl_t *make_var(decl_t *tdecl);
+decl_t *make_const(decl_t *tdecl);
+decl_t *make_func(decl_t *rettype);
+decl_t *make_arr(int, decl_t *tdecl);
+decl_t *make_ptr(decl_t *target);
+decl_t *make_str(ste_t *ste);
+decl_t *make_null(void);
 void init_type(void);
 
 // access
-decl_t* accarr(decl_t *arrdecl, decl_t *idxdecl);
-decl_t* accstruct(decl_t *stdecl, id *fieldid);
+decl_t *accarr(decl_t *arrdecl, decl_t *idxdecl);
+decl_t *accstruct(decl_t *stdecl, id *fieldid);
 
 /* error.c */
 // check errors
 int check_undeclared(id *idptr);
 int check_redeclaration(id *idptr);
 int check_assignable(decl_t *decl);
-int check_incompatible(decl_t *decl_1, decl_t *decl_2);
+int check_incompatible(decl_t *lhs, decl_t *rhs);
 int check_null(decl_t *lhs, decl_t *rhs);
 int check_binary(decl_t *op1, decl_t *op2);
 int check_unary(decl_t *decl, int tflag);
@@ -124,7 +125,7 @@ int check_subscript(decl_t *idxdecl);
 int check_incomplete(id *strid);
 int check_return(decl_t *tdecl);
 int check_function(decl_t *decl);
-int check_arguments(ste_t *args, decl_t *tdecl);
+int check_arguments(ste_t *formals, decl_t *tdecl);
 
 // print error message
 void error_preamble(void);

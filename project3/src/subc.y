@@ -85,9 +85,9 @@ ext_def
 
 type_specifier
   : TYPE                  { $$ = $1; }
-  | TYPE '*'              { $$ = make_ptr(NULL); }
+  | TYPE '*'              { $$ = make_ptr($1); }
   | struct_specifier      { $$ = $1; }
-  | struct_specifier '*'  { $$ = make_strptr($1, NULL); }
+  | struct_specifier '*'  { $$ = make_ptr($1); }
   ;
 
 struct_specifier
@@ -141,9 +141,11 @@ def_list
 
 def
   : type_specifier ID ';' { 
+    if (check_redeclaration($2)) return;
     declare($2, make_var($1)); 
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
+    if (check_redeclaration($2)) return;
     declare($2, make_const(make_arr($4, $1))); 
   }
   ;
@@ -176,14 +178,18 @@ expr_e
   ;
 
 expr
-  : unary '=' expr  {}
+  : unary '=' expr {
+    if (check_assignable($1)) return;
+    if (check_null($1, $3)) return;
+    if (check_incompatible($1, $3)) return;
+  }
   | binary          {}
   ;
 
 binary
   : binary RELOP binary       {}
   | binary EQUOP binary       {}
-  | binary '+' binary         {}
+  | binary '+' binary { check_binary($1, $3); }
   | binary '-' binary         {}
   | binary '*' binary         {}
   | binary '/' binary         {}
@@ -195,9 +201,9 @@ binary
 
 unary
   : '(' expr ')'          {}
-  | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->int_value = $1; }
-  | CHAR_CONST            { $$ = make_const(char_tdecl); $$->char_value = $1; }
-  | STRING                {} 
+  | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->intval = $1; }
+  | CHAR_CONST            { $$ = make_const(char_tdecl); $$->charval = $1; }
+  | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 
   | ID                    { check_undeclared($1); $$ = lookup($1); }
   | '-' unary %prec '!'   {}
   | '!' unary             {}
@@ -210,7 +216,7 @@ unary
   | unary '[' expr ']'    { $$ = accarr($1, $3); }
   | unary '.' ID          { $$ = accstruct($1, $3); }
   | unary STRUCTOP ID     {}
-  | unary '(' args ')'    { check_function($1); check_arguments(, $3)}
+  | unary '(' args ')'    { if (check_function($1)) return; check_arguments($1->formals, $3); }
   | unary '(' ')'         { check_function($1); }
   | SYM_NULL              { $$ = make_null(); }
   ;

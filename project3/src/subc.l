@@ -71,14 +71,13 @@ special_char  \\[nt]
 
   /* String variables */
 \"({special_char}|[^\\\"\n])*\" {
-                                  yylval.stringval = strdup(yytext);
+                                  yylval.stringval = strndup(yytext+1, yyleng-2);
                                   return STRING;
                                 }
 
   /* Character variables */
 '({special_char}|[^\\'\n])'     {    
                                   yylval.charval = yytext[1];
-                                  printf("%s\n", yytext);
                                   return CHAR_CONST;
                                 }
 
