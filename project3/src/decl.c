@@ -50,13 +50,13 @@ void finish_scope(void){
     free(scope);
 }
 
-void insert(ste_t *steptr){
+void insert_ste(ste_t *steptr){
     // push steptr to scope[top] 
     steptr->prev = scope[top];
     scope[top] = steptr;
 }
 
-void insert_list(ste_t *steptr){
+void insert_ste_list(ste_t *steptr){
     if (!steptr) return;
 
     ste_t *last = steptr;

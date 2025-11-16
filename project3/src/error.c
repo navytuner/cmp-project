@@ -91,8 +91,26 @@ void check_return(decl_t *tdecl){
     if (func->returntype != tdecl) error_return();
 }
 
-void check_function(void);
-void check_arguments(void);
+void check_function(decl_t *decl){
+    if (decl->declclass != DECL_FUNC) error_function();
+}
+
+void check_arguments(ste_t *args, decl_t *tdecl){
+    decl_t *cur = tdecl;
+    ste_t *arglist = args;
+    while (cur || arglist){
+        if (!cur || !arglist){
+            error_arguments();
+            return;
+        }
+        if (cur->typeclass != arglist->decl->type->typeclass) {
+            error_arguments();
+            return;
+        }
+        cur = cur->next;
+        arglist = arglist->prev;
+    }
+}
 
 // Print the preamble of error message.
 void error_preamble(void) {

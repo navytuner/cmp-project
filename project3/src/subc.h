@@ -123,8 +123,8 @@ void check_array(decl_t *arrdecl);
 void check_subscript(decl_t *idxdecl);
 void check_incomplete(decl_t *decl);
 void check_return(decl_t *tdecl);
-void check_function(void);
-void check_arguments(void);
+void check_function(decl_t *decl);
+void check_arguments(ste_t *args, decl_t *tdecl);
 
 // print error message
 void error_preamble(void);

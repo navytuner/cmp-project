@@ -29,7 +29,7 @@ void  reduce(char* s);
 }
 
 /* Tokens and Types */
-%type<declptr>    type_specifier struct_specifier func_decl binary unary expr
+%type<declptr>    type_specifier struct_specifier func_decl binary unary expr args
 %token<declptr>   TYPE
 %token            STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
 %token            LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
@@ -216,8 +216,8 @@ unary
   ;
 
 args
-  : expr          {}
-  | args ',' expr {}
+  : expr          { $$ = $1; }
+  | args ',' expr { $3->next = $1; $$ = $3; }
   ;
 
 %%
