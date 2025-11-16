@@ -178,44 +178,64 @@ expr_e
 
 expr
   : unary '=' expr {
-    if (check_assignable($1)) return;
-    if (check_null($1, $3)) return;
-    if (check_incompatible($1, $3)) return;
+    if (check_assignable($1) || check_null($1, $3) || check_incompatible($1, $3)) $$ = pass_tdecl;
+    else $$ = $1;
   }
-  | binary          {}
+  | binary {}
   ;
 
 binary
   : binary RELOP binary {
-    check_comparable($1, $3, (TYPE_INT | TYPE_CHAR));
-    $$ = int_tdecl;
+    if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR))) $$ = pass_tdecl;
+    else $$ = $1;
   }
   | binary EQUOP binary {
-    check_comparable($1, $3, (TYPE_INT | TYPE_CHAR | TYPE_PTR));
-    $$ = int_tdecl;
+    if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR | TYPE_PTR))) $$ = pass_tdecl;
+    else $$ = $1;
   }
-  | binary '+' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
-  | binary '-' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
-  | binary '*' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
-  | binary '/' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
-  | binary '%' binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
-  | unary %prec '='           { $$ = $1->type; }
-  | binary LOGICAL_AND binary { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
-  | binary LOGICAL_OR binary  { check_binary($1, $3, TYPE_INT); $$ = int_tdecl; }
+  | binary '+' binary { 
+    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
+    else $$ = $1;
+  }
+  | binary '-' binary { 
+    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
+    else $$ = $1;
+  } 
+  | binary '*' binary { 
+    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
+    else $$ = $1;
+  } 
+  | binary '/' binary { 
+    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
+    else $$ = $1;
+  } 
+  | binary '%' binary { 
+    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
+    else $$ = $1;
+  } 
+  | unary %prec '=' { $$ = $1->type; }
+  | binary LOGICAL_AND binary { 
+    if (check_binary($1, $3, TYPE_INT)) $$ = = pass_tdecl 
+    else $$ = $1;
+  }
+  | binary LOGICAL_OR binary { 
+    if (check_binary($1, $3, TYPE_INT)) $$ = = pass_tdecl 
+    else $$ = $1;
+  }
   ;
 
 unary
-  : '(' expr ')'          {}
+  : '(' expr ')'          { $$ = $2; }
   | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->intval = $1; }
   | CHAR_CONST            { $$ = make_const(char_tdecl); $$->charval = $1; }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 
-  | ID                    { check_undeclared($1); $$ = lookup($1); }
-  | '-' unary %prec '!'   { check_unary($2, TYPE_INT); }
-  | '!' unary             { check_unary($2, TYPE_INT); }
-  | unary INCOP %prec '.' { check_unary($1, TYPE_INT | TYPE_CHAR); }
-  | unary DECOP %prec '.' { check_unary($1, TYPE_INT | TYPE_CHAR); }
-  | INCOP unary           { check_unary($2, TYPE_INT | TYPE_CHAR); }
-  | DECOP unary           { check_unary($2, TYPE_INT | TYPE_CHAR); }
+  | ID                    { $$ = (!check_undeclared($1))? lookup($1) : pass_tdecl; }
+  | '-' unary %prec '!'   { $$ = (!check_unary($2, TYPE_INT))? $2 : pass_tdecl; }
+  | '!' unary             { $$ = (!check_unary($2, TYPE_INT))? $2 : pass_tdecl; }
+  | unary INCOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : pass_tdecl; }
+  | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : pass_tdecl; }
+  | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : pass_tdecl; }
+  | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : pass_tdecl; }
   | '&' unary             { check_addressof($2); }
   | '*' unary %prec '!'   { check_indirection($2); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }

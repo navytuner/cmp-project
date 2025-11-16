@@ -19,6 +19,38 @@ void init_scope(int cap) {
   capacity = cap;
 }
 
+void init_type(void) {
+  char *types[] = {"int", "char", NULL};
+  int class[] = {TYPE_INT, TYPE_CHAR, 0};
+  push_scope();
+  for (int i = 0; types[i] != NULL; i++) {
+    id *idptr = enter(TYPE, types[i], strlen(types[i]));
+    decl_t *declptr = (decl_t *)calloc(1, sizeof(decl_t));
+    declptr->declclass = DECL_TYPE;
+    declptr->typeclass = class[i];
+
+    // assign declptr to tdecl variables
+    switch (class[i]) {
+    case TYPE_INT:
+      int_tdecl = declptr;
+      break;
+    case TYPE_CHAR:
+      char_tdecl = declptr;
+      break;
+    }
+    declare(idptr, declptr);
+  }
+
+  /* TYPE_STRING, TYPE_PASS */
+  string_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
+  string_tdecl->declclass = DECL_TYPE;
+  string_tdecl->typeclass = TYPE_STRING;
+  pass_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
+  pass_tdecl->declclass = DECL_TYPE;
+  pass_tdecl->typeclass = TYPE_PASS;
+  returnid = enter(ID, "*return", 7);
+}
+
 void push_scope(void) {
   if (top + 1 == capacity) {
     // double the capacity
@@ -180,50 +212,23 @@ decl_t *make_null(void) {
   return nulldecl;
 }
 
-void init_type(void) {
-  char *types[] = {"int", "char", NULL};
-  int class[] = {TYPE_INT, TYPE_CHAR, 0};
-  push_scope();
-  for (int i = 0; types[i] != NULL; i++) {
-    id *idptr = enter(TYPE, types[i], strlen(types[i]));
-    decl_t *declptr = (decl_t *)calloc(1, sizeof(decl_t));
-    declptr->declclass = DECL_TYPE;
-    declptr->typeclass = class[i];
-
-    // assign declptr to tdecl variables
-    switch (class[i]) {
-    case TYPE_INT:
-      int_tdecl = declptr;
-      break;
-    case TYPE_CHAR:
-      char_tdecl = declptr;
-      break;
-    }
-    declare(idptr, declptr);
-  }
-
-  // make returnid
-  string_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
-  string_tdecl->declclass = DECL_TYPE;
-  string_tdecl->typeclass = TYPE_STRING;
-  returnid = enter(ID, "*return", 7);
-}
-
 decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl) {
   decl_t *tdecl = arrdecl->type;
   if (check_array(arrdecl) || check_subscript(idxdecl))
-    return NULL;
+    return pass_tdecl;
   return tdecl->elementvar;
 }
 
 decl_t *access_struct(decl_t *stdecl, id *fieldid) {
   if (check_struct(stdecl) || check_member(stdecl, fieldid))
-    return NULL;
+    return pass_tdecl;
   return find_decl(stdecl->fields, fieldid);
 }
 
 decl_t *access_structp(decl_t *ptr, id *fieldid) {
   if (check_structp(ptr) || check_member(ptr->type->ptrto, fieldid))
-    return NULL;
+    return pass_tdecl;
   return find_decl(ptr->type->ptrto->fields, fieldid);
 }
+
+decl_t *access_function(decl_t *func, decl_t *args) {}
