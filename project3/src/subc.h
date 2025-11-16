@@ -21,6 +21,7 @@
 #define DECL_FUNC 2
 #define DECL_TYPE 3
 #define DECL_NULL 4
+#define DECL_PASS 5
 
 /* TYPE CLASSS */
 #define TYPE_INT 1
@@ -70,6 +71,7 @@ extern decl_t *int_tdecl;
 extern decl_t *char_tdecl;
 extern decl_t *string_tdecl;
 extern decl_t *pass_tdecl;
+extern decl_t *pass_decl;
 extern id *returnid;
 
 int get_lineno();

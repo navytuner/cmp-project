@@ -33,11 +33,11 @@ int check_assignable(decl_t *decl) {
 int check_incompatible(decl_t *lhs, decl_t *rhs) {
   if (ispass(lhs) || ispass(rhs))
     return 0;
-  if (!lhs || !lhs->type || !rhs || !rhs->type) {
+  if (!lhs || !lhs->type || !rhs) {
     error_incompatible();
     return 1;
   }
-  if (lhs->type->typeclass != rhs->type->typeclass) {
+  if (lhs->type->typeclass != rhs->typeclass) {
     error_incompatible();
     return 1;
   }
@@ -229,7 +229,7 @@ int check_return(decl_t *tdecl) {
     return 0;
 
   decl_t *func = lookup_cur(returnid);
-  if (func->returntype != tdecl) {
+  if (func != tdecl) {
     error_return();
     return 1;
   }

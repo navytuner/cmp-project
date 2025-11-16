@@ -12,6 +12,7 @@ decl_t *float_tdecl;
 decl_t *char_tdecl;
 decl_t *string_tdecl;
 decl_t *pass_tdecl;
+decl_t *pass_decl;
 id *returnid;
 
 void init_scope(int cap) {
@@ -47,9 +48,13 @@ void init_type(void) {
   string_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
   string_tdecl->declclass = DECL_TYPE;
   string_tdecl->typeclass = TYPE_STRING;
+
   pass_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
   pass_tdecl->declclass = DECL_TYPE;
   pass_tdecl->typeclass = TYPE_PASS;
+  pass_decl = (decl_t *)calloc(1, sizeof(decl_t));
+  pass_decl->declclass = DECL_PASS;
+  pass_decl->type = pass_tdecl;
   returnid = enter(ID, "*return", 7);
 }
 
@@ -62,7 +67,8 @@ void push_scope(void) {
     free(scope);
     scope = new_scope;
   }
-  scope[++top] = scope[top - 1];
+  top++;
+  scope[top] = scope[top - 1];
 }
 
 ste_t *pop_scope(int isfree) {

@@ -14,6 +14,7 @@ int   yylex();
 int   yyerror(char* s);
 char* yyget_text();
 void  reduce(char* s);
+int blockcnt = 0; // for debugging
 %}
 
 /* Bison declarations section */
@@ -77,9 +78,9 @@ ext_def
   | func_decl {
     push_scope();
     insert_ste_list($1->formals); 
+    blockcnt++;
   } compound_stmt { 
     pop_scope(1); 
-    check_return($1);
   }
   ;
 
@@ -117,7 +118,7 @@ func_decl
     declare(returnid, $1);
   } param_list ')' { 
     $<declptr>4->formals = pop_scope(0);
-    $$ = $<declptr>$;
+    $$ = $<declptr>4;
   }
   ;
 
@@ -127,9 +128,10 @@ param_list
   ;
 
 param_decl
-  : type_specifier ID { declare($2, make_var($1)); }
+  : type_specifier ID { 
+    if (!check_redeclaration($2)) declare($2, make_var($1)); }
   | type_specifier ID '[' INTEGER_CONST ']' { 
-    declare($2, make_const(make_arr($4, $1)));
+    if (!check_redeclaration($2)) declare($2, make_const(make_arr($4, $1)));
   }
   ;
 
@@ -159,7 +161,7 @@ stmt_list
 stmt
   : expr ';'                                        {}
   | compound_stmt                                   {}
-  | RETURN expr ';'                                 {}
+  | RETURN expr ';'                                 { check_return($2); }
   | ';'                                             {}
   | IF '(' expr ')' stmt %prec '('                  {}
   | IF '(' expr ')' stmt ELSE stmt                  {}
@@ -227,15 +229,15 @@ unary
   | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->intval = $1; }
   | CHAR_CONST            { $$ = make_const(char_tdecl); $$->charval = $1; }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 
-  | ID                    { $$ = (!check_undeclared($1))? lookup($1) : pass_tdecl; }
-  | '-' unary %prec '!'   { $$ = (!check_unary($2, TYPE_INT))? $2 : pass_tdecl; }
-  | '!' unary             { $$ = (!check_unary($2, TYPE_INT))? $2 : pass_tdecl; }
-  | unary INCOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : pass_tdecl; }
-  | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : pass_tdecl; }
-  | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : pass_tdecl; }
-  | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : pass_tdecl; }
+  | ID                    { $$ = (!check_undeclared($1))? lookup($1) : pass_decl; }
+  | '-' unary %prec '!'   { $$ = (!check_unary($2, TYPE_INT))? $2 : pass_decl; }
+  | '!' unary             { $$ = (!check_unary($2, TYPE_INT))? $2 : pass_decl; }
+  | unary INCOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : pass_decl; }
+  | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : pass_decl; }
+  | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : pass_decl; }
+  | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : pass_decl; }
   | '&' unary             { check_addressof($2); }
-  | '*' unary %prec '!'   { check_indirection($2); }
+  | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_var(int_tdecl) : pass_decl; }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
