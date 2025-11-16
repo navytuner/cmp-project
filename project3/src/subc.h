@@ -71,7 +71,6 @@ extern decl_t *int_tdecl;
 extern decl_t *char_tdecl;
 extern decl_t *string_tdecl;
 extern decl_t *pass_tdecl;
-extern decl_t *pass_decl;
 extern id *returnid;
 
 int get_lineno();

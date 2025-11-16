@@ -229,6 +229,13 @@ int check_return(decl_t *tdecl) {
     return 0;
 
   decl_t *func = lookup_cur(returnid);
+  if (tdecl->typeclass == TYPE_PTR && func->typeclass == TYPE_PTR){
+    if (tdecl->ptrto == func->ptrto) return 0;
+    else {
+      error_return();
+      return 1;
+    }
+  }
   if (func != tdecl) {
     error_return();
     return 1;
