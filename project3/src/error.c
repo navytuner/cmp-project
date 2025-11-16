@@ -1,8 +1,15 @@
 #include "subc.h"
 #include "subc.tab.h"
 
-int ispass(decl_t *decl) {
-  return (decl->declclass == DECL_TYPE && decl->typeclass == TYPE_PASS);
+int ispass(decl_t *tdecl) { return (tdecl == pass_tdecl); }
+
+int issametype(decl_t *tdecl1, decl_t *tdecl2) {
+  if (tdecl1 == tdecl2)
+    return 1;
+  if (tdecl1->typeclass == TYPE_PTR && tdecl2->typeclass == TYPE_PTR &&
+      tdecl1->ptrto == tdecl2->ptrto)
+    return 1;
+  return 0;
 }
 
 int check_undeclared(id *idptr) {
@@ -31,13 +38,13 @@ int check_assignable(decl_t *decl) {
 }
 
 int check_incompatible(decl_t *lhs, decl_t *rhs) {
-  if (ispass(lhs) || ispass(rhs))
+  if (ispass(lhs->type) || ispass(rhs))
     return 0;
   if (!lhs || !lhs->type || !rhs) {
     error_incompatible();
     return 1;
   }
-  if (lhs->type->typeclass != rhs->typeclass) {
+  if (!issametype(lhs->type, rhs)) {
     error_incompatible();
     return 1;
   }
@@ -45,9 +52,9 @@ int check_incompatible(decl_t *lhs, decl_t *rhs) {
 }
 
 int check_null(decl_t *lhs, decl_t *rhs) {
-  if (ispass(lhs) || ispass(rhs))
+  if (ispass(lhs->type) || ispass(rhs))
     return 0;
-  if (rhs->declclass == DECL_NULL && lhs->type->typeclass != TYPE_PTR) {
+  if (rhs->typeclass == TYPE_NULL && lhs->type->typeclass != TYPE_PTR) {
     error_null();
     return 1;
   }
@@ -58,22 +65,20 @@ int check_binary(decl_t *op1, decl_t *op2, int tflag) {
   if (ispass(op1) || ispass(op2))
     return 0;
 
-  int type1 = op1->typeclass;
-  int type2 = op2->typeclass;
-  if (type1 != type2) {
+  if (op1 != op2) {
     error_binary();
     return 1;
   }
 
   switch (tflag) {
   case TYPE_INT:
-    if (type1 != TYPE_INT) {
+    if (op1 != int_tdecl) {
       error_binary();
       return 1;
     }
     break;
   case TYPE_CHAR:
-    if (type1 != TYPE_CHAR) {
+    if (op1 != char_tdecl) {
       error_binary();
       return 1;
     }
@@ -83,25 +88,25 @@ int check_binary(decl_t *op1, decl_t *op2, int tflag) {
 }
 
 int check_unary(decl_t *decl, int tflag) {
-  if (ispass(decl))
+  if (ispass(decl->type))
     return 0;
 
-  int type = decl->type->typeclass;
+  decl_t *tdecl = decl->type;
   switch (tflag) {
   case (TYPE_INT | TYPE_CHAR):
-    if (type != TYPE_INT && type != TYPE_CHAR) {
+    if (tdecl != int_tdecl && tdecl != char_tdecl) {
       error_unary();
       return 1;
     }
     break;
   case TYPE_INT:
-    if (type != TYPE_INT) {
+    if (tdecl != int_tdecl) {
       error_unary();
       return 1;
     }
     break;
   case TYPE_CHAR:
-    if (type != TYPE_CHAR) {
+    if (tdecl != char_tdecl) {
       error_unary();
       return 1;
     }
@@ -138,7 +143,7 @@ int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
 }
 
 int check_indirection(decl_t *op) {
-  if (ispass(op))
+  if (ispass(op->type))
     return 0;
 
   if (op->type->typeclass != TYPE_PTR) {
@@ -149,7 +154,7 @@ int check_indirection(decl_t *op) {
 }
 
 int check_addressof(decl_t *op) {
-  if (ispass(op))
+  if (ispass(op->type))
     return 0;
 
   if (op->declclass != DECL_VAR) {
@@ -160,7 +165,7 @@ int check_addressof(decl_t *op) {
 }
 
 int check_struct(decl_t *stdecl) {
-  if (ispass(stdecl))
+  if (ispass(stdecl->type))
     return 0;
 
   if (stdecl->type->typeclass != TYPE_STRUCT) {
@@ -171,7 +176,7 @@ int check_struct(decl_t *stdecl) {
 }
 
 int check_structp(decl_t *strptr) {
-  if (ispass(strptr))
+  if (ispass(strptr->type))
     return 0;
 
   decl_t *tdecl = strptr->type;
@@ -184,7 +189,7 @@ int check_structp(decl_t *strptr) {
 }
 
 int check_member(decl_t *stdecl, id *idptr) {
-  if (ispass(stdecl))
+  if (ispass(stdecl->type))
     return 0;
 
   if (!find_decl(stdecl->fields, idptr)) {
@@ -195,7 +200,7 @@ int check_member(decl_t *stdecl, id *idptr) {
 }
 
 int check_array(decl_t *arrdecl) {
-  if (ispass(arrdecl))
+  if (ispass(arrdecl->type))
     return 0;
 
   if (arrdecl->type->typeclass != TYPE_ARRAY) {
@@ -228,15 +233,8 @@ int check_return(decl_t *tdecl) {
   if (ispass(tdecl))
     return 0;
 
-  decl_t *func = lookup_cur(returnid);
-  if (tdecl->typeclass == TYPE_PTR && func->typeclass == TYPE_PTR){
-    if (tdecl->ptrto == func->ptrto) return 0;
-    else {
-      error_return();
-      return 1;
-    }
-  }
-  if (func != tdecl) {
+  decl_t *func = lookup(returnid);
+  if (!issametype(func, tdecl)) {
     error_return();
     return 1;
   }
@@ -254,23 +252,25 @@ int check_function(decl_t *decl) {
   return 0;
 }
 
-int check_arguments(decl_t *func, decl_t *tdecl) {
-  if (ispass(func) || ispass(tdecl))
+int check_arguments(decl_t *func, decl_t *args) {
+  if (ispass(func->type) || ispass(args))
     return 0;
 
-  decl_t *cur = tdecl;
-  ste_t *paramlist = func->formals;
-  while (cur || paramlist) {
-    if (!cur || !paramlist) {
+  decl_t *arg = args;
+  ste_t *param = func->formals;
+  while (param && arg) {
+    decl_t *paramdecl = param->decl;
+    if (param->decl->type != arg->type) {
       error_arguments();
       return 1;
     }
-    if (cur->typeclass != paramlist->decl->type->typeclass) {
-      error_arguments();
-      return 1;
-    }
-    cur = cur->next;
-    paramlist = paramlist->prev;
+    param = param->prev;
+    arg = arg->next;
+  }
+
+  if (param->id != returnid || arg) {
+    error_arguments();
+    return 1;
   }
   return 0;
 }

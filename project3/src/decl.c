@@ -12,6 +12,7 @@ decl_t *float_tdecl;
 decl_t *char_tdecl;
 decl_t *string_tdecl;
 decl_t *pass_tdecl;
+decl_t *null_tdecl;
 id *returnid;
 
 void init_scope(int cap) {
@@ -42,6 +43,11 @@ void init_type(void) {
     }
     declare(idptr, declptr);
   }
+
+  /* TYPE_NULL */
+  null_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
+  null_tdecl->declclass = DECL_TYPE;
+  null_tdecl->typeclass = TYPE_NULL;
 
   /* TYPE_STRING, TYPE_PASS */
   string_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
@@ -210,10 +216,16 @@ decl_t *make_str(ste_t *fields) {
   return structdecl;
 }
 
-decl_t *make_null(void) {
-  decl_t *nulldecl = (decl_t *)calloc(1, sizeof(decl_t));
-  nulldecl->declclass = DECL_NULL;
-  return nulldecl;
+// decl_t *make_null(void) {
+//   decl_t *nulldecl = (decl_t *)calloc(1, sizeof(decl_t));
+//   nulldecl->declclass = DECL_NULL;
+//   return nulldecl;
+// }
+
+decl_t *make_arg(decl_t *tdecl, decl_t *nextarg) {
+  decl_t *newarg = make_var(tdecl);
+  newarg->next = nextarg;
+  return newarg;
 }
 
 decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl) {
@@ -238,5 +250,6 @@ decl_t *access_structp(decl_t *ptr, id *fieldid) {
 decl_t *access_function(decl_t *func, decl_t *args) {
   if (check_function(func) || check_arguments(func, args))
     return pass_tdecl;
-  return func->returntype;
+  func->type = func->returntype;
+  return func;
 }

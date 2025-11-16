@@ -80,7 +80,7 @@ ext_def
     insert_ste_list($1->formals); 
     blockcnt++;
   } compound_stmt { 
-    pop_scope(1); 
+    pop_scope(0); 
   }
   ;
 
@@ -181,7 +181,7 @@ expr
     if (check_assignable($1) || check_null($1, $3) || check_incompatible($1, $3)) $$ = pass_tdecl;
     else $$ = $1;
   }
-  | binary {}
+  | binary { $$ = $1; }
   ;
 
 binary
@@ -236,19 +236,19 @@ unary
   | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : make_var(pass_tdecl); }
   | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_var(pass_tdecl); }
   | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_var(pass_tdecl); }
-  | '&' unary             { check_addressof($2); }
-  | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_var(int_tdecl) : make_var(pass_tdecl); }
+  | '&' unary             { $$ = (!check_addressof($2))? make_ptr($2->type) : make_var(pass_tdecl); }
+  | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_var($2->type->ptrto) : make_var(pass_tdecl); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
   | unary '(' args ')'    { $$ = access_function($1, $3); } 
   | unary '(' ')'         { $$ = access_function($1, NULL); }
-  | SYM_NULL              { $$ = make_null(); }
+  | SYM_NULL              { $$ = make_const(null_tdecl); }
   ;
 
 args
-  : expr          { $$ = $1; }
-  | args ',' expr { $3->next = $1; $$ = $3; } /* reverse order */
+  : expr          { $$ = make_var($1); }
+  | args ',' expr { $$ = make_arg($3, $1); }
   ;
 
 %%

@@ -31,6 +31,7 @@
 #define TYPE_ARRAY 5
 #define TYPE_STRUCT 6
 #define TYPE_PASS 7
+#define TYPE_NULL 8
 
 typedef struct id {
   int tokenType;
@@ -71,6 +72,7 @@ extern decl_t *int_tdecl;
 extern decl_t *char_tdecl;
 extern decl_t *string_tdecl;
 extern decl_t *pass_tdecl;
+extern decl_t *null_tdecl;
 extern id *returnid;
 
 int get_lineno();
@@ -102,7 +104,8 @@ decl_t *make_func(decl_t *rettype);
 decl_t *make_arr(int, decl_t *tdecl);
 decl_t *make_ptr(decl_t *target);
 decl_t *make_str(ste_t *ste);
-decl_t *make_null(void);
+// decl_t *make_null(void);
+decl_t *make_arg(decl_t *tdecl, decl_t *nextarg);
 
 // access
 decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl);
@@ -113,6 +116,7 @@ decl_t *access_function(decl_t *func, decl_t *args);
 /* error.c */
 // check errors
 int ispass(decl_t *decl);
+int issametype(decl_t *tdecl1, decl_t *tdecl2);
 int check_undeclared(id *idptr);
 int check_redeclaration(id *idptr);
 int check_assignable(decl_t *decl);
@@ -131,7 +135,7 @@ int check_subscript(decl_t *idxdecl);
 int check_incomplete(id *strid);
 int check_return(decl_t *tdecl);
 int check_function(decl_t *decl);
-int check_arguments(decl_t *func, decl_t *tdecl);
+int check_arguments(decl_t *func, decl_t *args);
 
 // print error message
 void error_preamble(void);
