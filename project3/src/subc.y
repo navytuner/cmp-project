@@ -97,7 +97,7 @@ struct_specifier
     declare_glob($2, $$); 
   }
   | STRUCT ID { 
-    $$ = (!check_incomplete($2))? lookup($2) : NULL;
+    $$ = (!check_incomplete($2))? lookup($2) : pass_tdecl;
   }
   ;
 
@@ -106,7 +106,7 @@ func_decl
     $<declptr>$ = make_func($1);
     declare($2, $<declptr>$);
     push_scope();
-    declare(returnid, $1);
+    declare(returnid, make_const($1));
   } ')' {
     $<declptr>4->formals = pop_scope(0);
     $$ = $<declptr>4;
@@ -115,7 +115,7 @@ func_decl
     $<declptr>$ = make_func($1);
     declare($2, $<declptr>$);
     push_scope(); 
-    declare(returnid, $1);
+    declare(returnid, make_const($1));
   } param_list ')' { 
     $<declptr>4->formals = pop_scope(0);
     $$ = $<declptr>4;
@@ -237,7 +237,7 @@ unary
   | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_const(pass_tdecl); }
   | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_const(pass_tdecl); }
   | '&' unary             { $$ = (!check_addressof($2))? make_const(make_ptr($2->type)) : make_const(pass_tdecl); }
-  | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_const($2->type->ptrto) : make_const(pass_tdecl); }
+  | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_var($2->type->ptrto) : make_const(pass_tdecl); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }

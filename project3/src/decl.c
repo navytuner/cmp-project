@@ -15,11 +15,11 @@ decl_t *pass_tdecl;
 decl_t *null_tdecl;
 id *returnid;
 
-void init_scope(int cap) {
+void init_scope(void) {
   top = 0;
-  scope = (ste_t **)calloc(cap, sizeof(ste_t *));
+  scope = (ste_t **)calloc(SCOPE_INITSZ, sizeof(ste_t *));
   scope[0] = NULL; // scope[0]: dummy node
-  capacity = cap;
+  capacity = SCOPE_INITSZ;
 }
 
 void init_type(void) {
@@ -127,16 +127,16 @@ ste_t *declare_glob(id *idptr, decl_t *declptr) {
   newste->id = idptr;
   newste->decl = declptr;
 
-  newste->prev = scope[1];
-  scope[1] = newste;
-  if (top <= 1)
+  newste->prev = scope[SCOPE_GLOB];
+  scope[SCOPE_GLOB] = newste;
+  if (top <= SCOPE_GLOB)
     return newste;
 
   ste_t *cur = scope[2];
-  while (cur && cur->prev != scope[1]->prev) {
+  while (cur && cur->prev != scope[SCOPE_GLOB]->prev) {
     cur = cur->prev;
   }
-  cur->prev = scope[1];
+  cur->prev = scope[SCOPE_GLOB];
   return newste;
 }
 

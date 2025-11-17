@@ -13,7 +13,9 @@
 #include <string.h>
 #include <strings.h>
 
-#define INIT_SCOPE_SZ 10
+/* SCOPE */
+#define SCOPE_INITSZ 10
+#define SCOPE_GLOB 1
 
 /* DECL CLASS*/
 #define DECL_VAR 0
@@ -85,7 +87,7 @@ id *enter(int tokenType, char *name, int length);
 
 /* decl.c */
 // scope functions
-void init_scope(int cap);
+void init_scope(void);
 void init_type(void);
 void push_scope(void);
 ste_t *pop_scope(int isfree);

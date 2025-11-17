@@ -235,8 +235,8 @@ int check_return(decl_t *tdecl) {
   if (ispass(tdecl))
     return 0;
 
-  decl_t *func = lookup(returnid);
-  if (!issametype(func, tdecl)) {
+  decl_t *ret = lookup(returnid);
+  if (!issametype(ret->type, tdecl)) {
     error_return();
     return 1;
   }
@@ -260,7 +260,7 @@ int check_arguments(decl_t *func, decl_t *args) {
 
   decl_t *arg = args;
   ste_t *param = func->formals;
-  while (param && arg) {
+  while (param->id != returnid && arg) {
     if (!issametype(param->decl->type, arg->type)) {
       error_arguments();
       return 1;
