@@ -132,7 +132,7 @@ ste_t *declare_glob(id *idptr, decl_t *declptr) {
   if (top <= SCOPE_GLOB)
     return newste;
 
-  ste_t *cur = scope[2];
+  ste_t *cur = scope[SCOPE_GLOB + 1];
   while (cur && cur->prev != scope[SCOPE_GLOB]->prev) {
     cur = cur->prev;
   }
@@ -229,16 +229,18 @@ decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl) {
   return tdecl->elementvar;
 }
 
-decl_t *access_struct(decl_t *stdecl, id *fieldid) {
-  if (check_struct(stdecl) || check_member(stdecl, fieldid))
+decl_t *access_struct(decl_t *strvar, id *fieldid) {
+  decl_t *strdecl = strvar->type;
+  if (check_struct(strdecl) || check_member(strdecl, fieldid))
     return make_const(pass_tdecl);
-  return find_decl(stdecl->fields, fieldid);
+  return find_decl(strdecl->fields, fieldid);
 }
 
-decl_t *access_structp(decl_t *ptr, id *fieldid) {
-  if (check_structp(ptr) || check_member(ptr->type->ptrto, fieldid))
+decl_t *access_structp(decl_t *strpvar, id *fieldid) {
+  decl_t *strp = strpvar->type;
+  if (check_structp(strp) || check_member(strp->ptrto, fieldid))
     return make_const(pass_tdecl);
-  return find_decl(ptr->type->ptrto->fields, fieldid);
+  return find_decl(strp->ptrto->fields, fieldid);
 }
 
 decl_t *access_function(decl_t *func, decl_t *args) {

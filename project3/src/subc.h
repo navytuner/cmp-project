@@ -111,8 +111,8 @@ decl_t *make_arg(decl_t *tdecl, decl_t *nextarg);
 
 // access
 decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl);
-decl_t *access_struct(decl_t *stdecl, id *fieldid);
-decl_t *access_structp(decl_t *stdecl, id *fieldid);
+decl_t *access_struct(decl_t *strpvar, id *fieldid);
+decl_t *access_structp(decl_t *strvar, id *fieldid);
 decl_t *access_function(decl_t *func, decl_t *args);
 
 /* error.c */
@@ -129,9 +129,9 @@ int check_unary(decl_t *decl, int tflag);
 int check_comparable(decl_t *op1, decl_t *op2, int tflag);
 int check_indirection(decl_t *op);
 int check_addressof(decl_t *op);
-int check_struct(decl_t *stdecl);
-int check_structp(decl_t *stdecl);
-int check_member(decl_t *stdecl, id *idptr);
+int check_struct(decl_t *strdecl);
+int check_structp(decl_t *strdecl);
+int check_member(decl_t *strdecl, id *idptr);
 int check_array(decl_t *arrdecl);
 int check_subscript(decl_t *idxdecl);
 int check_incomplete(id *strid);

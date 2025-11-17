@@ -92,13 +92,20 @@ type_specifier
   ;
 
 struct_specifier
-  : STRUCT ID '{' { push_scope(); } def_list '}' { 
-    $$ = make_str(pop_scope(0));
-    declare_glob($2, $$); 
+  : STRUCT ID {
+    if (!check_redeclaration($2)) {
+      $<declptr>$ = make_str(NULL);
+      declare_glob($2, $<declptr>$);
+    }
+    else $<declptr>$ = pass_tdecl;
+  } '{' { 
+    push_scope(); 
+  } def_list '}' { 
+    if ($<declptr>3 == pass_tdecl) pop_scope(0);
+    else $<declptr>3->fields = pop_scope(0);
+    $$ = $<declptr>3;
   }
-  | STRUCT ID { 
-    $$ = (!check_incomplete($2))? lookup($2) : pass_tdecl;
-  }
+  | STRUCT ID { $$ = (!check_incomplete($2))? lookup($2) : pass_tdecl; }
   ;
 
 func_decl
@@ -225,7 +232,7 @@ binary
   ;
 
 unary
-  : '(' expr ')'          { $$ = $2; }
+  : '(' expr ')'          { $$ = make_const($2); }
   | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->intval = $1; }
   | CHAR_CONST            { $$ = make_const(char_tdecl); $$->charval = $1; }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 

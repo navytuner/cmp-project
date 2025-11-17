@@ -166,35 +166,34 @@ int check_addressof(decl_t *op) {
   return 0;
 }
 
-int check_struct(decl_t *stdecl) {
-  if (ispass(stdecl->type))
+int check_struct(decl_t *strdecl) {
+  if (ispass(strdecl))
     return 0;
 
-  if (stdecl->type->typeclass != TYPE_STRUCT) {
+  if (strdecl->typeclass != TYPE_STRUCT) {
     error_struct();
     return 1;
   }
   return 0;
 }
 
-int check_structp(decl_t *strptr) {
-  if (ispass(strptr->type))
+int check_structp(decl_t *strp) {
+  if (ispass(strp))
     return 0;
 
-  decl_t *tdecl = strptr->type;
-  if (tdecl && tdecl->typeclass == TYPE_PTR) {
-    if (tdecl->ptrto && tdecl->ptrto->typeclass == TYPE_STRUCT)
+  if (strp->typeclass == TYPE_PTR) {
+    if (strp->ptrto && strp->ptrto->typeclass == TYPE_STRUCT)
       return 0;
   }
   error_structp();
   return 1;
 }
 
-int check_member(decl_t *stdecl, id *idptr) {
-  if (ispass(stdecl->type))
+int check_member(decl_t *strdecl, id *idptr) {
+  if (ispass(strdecl))
     return 0;
 
-  if (!find_decl(stdecl->fields, idptr)) {
+  if (!find_decl(strdecl->fields, idptr)) {
     error_member();
     return 1;
   }
