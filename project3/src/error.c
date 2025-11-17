@@ -32,7 +32,7 @@ int check_redeclaration(id *idptr) {
 
 int check_assignable(decl_t *decl) {
   if (ispass(decl))
-    return 0;
+    return 1;
   if (decl && decl->declclass == DECL_VAR)
     return 0;
   error_assignable();
@@ -41,7 +41,7 @@ int check_assignable(decl_t *decl) {
 
 int check_incompatible(decl_t *lhs, decl_t *rhs) {
   if (ispass(lhs->type) || ispass(rhs))
-    return 0;
+    return 1;
   if (!lhs || !lhs->type || !rhs) {
     error_incompatible();
     return 1;
@@ -55,7 +55,7 @@ int check_incompatible(decl_t *lhs, decl_t *rhs) {
 
 int check_null(decl_t *lhs, decl_t *rhs) {
   if (ispass(lhs->type) || ispass(rhs))
-    return 0;
+    return 1;
   if (rhs->typeclass == TYPE_NULL && lhs->type->typeclass != TYPE_PTR) {
     error_null();
     return 1;
@@ -65,7 +65,7 @@ int check_null(decl_t *lhs, decl_t *rhs) {
 
 int check_binary(decl_t *op1, decl_t *op2, int tflag) {
   if (ispass(op1) || ispass(op2))
-    return 0;
+    return 1;
 
   if (op1 != op2) {
     error_binary();
@@ -91,7 +91,7 @@ int check_binary(decl_t *op1, decl_t *op2, int tflag) {
 
 int check_unary(decl_t *decl, int tflag) {
   if (ispass(decl->type))
-    return 0;
+    return 1;
 
   decl_t *tdecl = decl->type;
   switch (tflag) {
@@ -119,7 +119,7 @@ int check_unary(decl_t *decl, int tflag) {
 
 int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
   if (ispass(op1) || ispass(op2))
-    return 0;
+    return 1;
 
   int type1 = op1->typeclass;
   int type2 = op2->typeclass;
@@ -146,7 +146,7 @@ int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
 
 int check_indirection(decl_t *op) {
   if (ispass(op->type))
-    return 0;
+    return 1;
 
   if (op->type->typeclass != TYPE_PTR) {
     error_indirection();
@@ -157,7 +157,7 @@ int check_indirection(decl_t *op) {
 
 int check_addressof(decl_t *op) {
   if (ispass(op->type))
-    return 0;
+    return 1;
 
   if (op->declclass != DECL_VAR) {
     error_addressof();
@@ -168,7 +168,7 @@ int check_addressof(decl_t *op) {
 
 int check_struct(decl_t *strdecl) {
   if (ispass(strdecl))
-    return 0;
+    return 1;
 
   if (strdecl->typeclass != TYPE_STRUCT) {
     error_struct();
@@ -179,7 +179,7 @@ int check_struct(decl_t *strdecl) {
 
 int check_structp(decl_t *strp) {
   if (ispass(strp))
-    return 0;
+    return 1;
 
   if (strp->typeclass == TYPE_PTR) {
     if (strp->ptrto && strp->ptrto->typeclass == TYPE_STRUCT)
@@ -191,7 +191,7 @@ int check_structp(decl_t *strp) {
 
 int check_member(decl_t *strdecl, id *idptr) {
   if (ispass(strdecl))
-    return 0;
+    return 1;
 
   if (!find_decl(strdecl->fields, idptr)) {
     error_member();
@@ -202,7 +202,7 @@ int check_member(decl_t *strdecl, id *idptr) {
 
 int check_array(decl_t *arrdecl) {
   if (ispass(arrdecl->type))
-    return 0;
+    return 1;
 
   if (arrdecl->type->typeclass != TYPE_ARRAY) {
     error_array();
@@ -213,9 +213,9 @@ int check_array(decl_t *arrdecl) {
 
 int check_subscript(decl_t *idxdecl) {
   if (ispass(idxdecl))
-    return 0;
+    return 1;
 
-  if (idxdecl->type != int_tdecl) {
+  if (idxdecl != int_tdecl) {
     error_subscript();
     return 1;
   }
@@ -232,7 +232,7 @@ int check_incomplete(id *strid) {
 
 int check_return(decl_t *tdecl) {
   if (ispass(tdecl))
-    return 0;
+    return 1;
 
   decl_t *ret = lookup(returnid);
   if (!issametype(ret->type, tdecl)) {
@@ -244,7 +244,7 @@ int check_return(decl_t *tdecl) {
 
 int check_function(decl_t *decl) {
   if (ispass(decl))
-    return 0;
+    return 1;
 
   if (decl->declclass != DECL_FUNC) {
     error_function();
@@ -255,7 +255,7 @@ int check_function(decl_t *decl) {
 
 int check_arguments(decl_t *func, decl_t *args) {
   if (ispass(func->type) || ispass(args))
-    return 0;
+    return 1;
 
   decl_t *arg = args;
   ste_t *param = func->formals;
