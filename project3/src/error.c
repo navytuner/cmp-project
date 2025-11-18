@@ -46,6 +46,8 @@ int check_incompatible(decl_t *lhs, decl_t *rhs) {
     error_incompatible();
     return 1;
   }
+  if (rhs == null_tdecl && lhs->type->typeclass == TYPE_PTR)
+    return 0;
   if (!issametype(lhs->type, rhs)) {
     error_incompatible();
     return 1;
@@ -136,6 +138,10 @@ int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
     break;
   case (TYPE_INT | TYPE_CHAR | TYPE_PTR):
     if (type1 != TYPE_INT && type1 != TYPE_CHAR && type1 != TYPE_PTR) {
+      error_comparable();
+      return 1;
+    }
+    if (!issametype(op1, op2)) {
       error_comparable();
       return 1;
     }

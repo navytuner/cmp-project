@@ -77,6 +77,11 @@ ste_t *pop_scope(int isfree) {
   if (!scope[top])
     return NULL;
 
+  if (top >= SCOPE_GLOB && scope[top] == scope[top - 1]) {
+    scope[top--] = 0;
+    return NULL;
+  }
+
   ste_t *delptr = scope[top];
   ste_t *target = scope[top];
   while (delptr && delptr->prev != scope[top - 1]) {

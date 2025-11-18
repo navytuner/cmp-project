@@ -79,7 +79,7 @@ ext_def
     push_scope();
     insert_ste_list($1->formals); 
     blockcnt++;
-  } compound_stmt { 
+  } compound_func_stmt { 
     pop_scope(0); 
   }
   ;
@@ -111,7 +111,7 @@ struct_specifier
 func_decl
   : type_specifier ID '(' {
     $<declptr>$ = make_func($1);
-    declare($2, $<declptr>$);
+    if (!check_redeclaration($2)) declare($2, $<declptr>$);
     push_scope();
     declare(returnid, make_const($1));
   } ')' {
@@ -120,7 +120,7 @@ func_decl
   }
   | type_specifier ID '(' { 
     $<declptr>$ = make_func($1);
-    declare($2, $<declptr>$);
+    if (!check_redeclaration($2)) declare($2, $<declptr>$);
     push_scope(); 
     declare(returnid, make_const($1));
   } param_list ')' { 
@@ -157,7 +157,11 @@ def
   ;
 
 compound_stmt
-  : '{' def_list stmt_list '}' {}
+  : '{' { push_scope(); } def_list stmt_list '}' { pop_scope(0); }
+  ;
+
+compound_func_stmt
+  : '{' def_list stmt_list '}'
   ;
 
 stmt_list
@@ -194,11 +198,11 @@ expr
 binary
   : binary RELOP binary {
     if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR))) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl;
   }
   | binary EQUOP binary {
     if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR | TYPE_PTR))) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl;
   }
   | binary '+' binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
