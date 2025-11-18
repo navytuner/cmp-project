@@ -93,7 +93,7 @@ type_specifier
 
 struct_specifier
   : STRUCT ID {
-    if (!check_redeclaration($2)) {
+    if (!check_redeclaration($2, TRUE)) {
       $<declptr>$ = make_str(NULL);
       declare_glob($2, $<declptr>$);
     }
@@ -111,7 +111,7 @@ struct_specifier
 func_decl
   : type_specifier ID '(' {
     $<declptr>$ = make_func($1);
-    if (!check_redeclaration($2)) declare($2, $<declptr>$);
+    if (!check_redeclaration($2, TRUE)) declare($2, $<declptr>$);
     push_scope();
     declare(returnid, make_const($1));
   } ')' {
@@ -120,7 +120,7 @@ func_decl
   }
   | type_specifier ID '(' { 
     $<declptr>$ = make_func($1);
-    if (!check_redeclaration($2)) declare($2, $<declptr>$);
+    if (!check_redeclaration($2, TRUE)) declare($2, $<declptr>$);
     push_scope(); 
     declare(returnid, make_const($1));
   } param_list ')' { 
@@ -136,9 +136,9 @@ param_list
 
 param_decl
   : type_specifier ID { 
-    if (!check_redeclaration($2)) declare($2, make_var($1)); }
+    if (!check_redeclaration($2, FALSE)) declare($2, make_var($1)); }
   | type_specifier ID '[' INTEGER_CONST ']' { 
-    if (!check_redeclaration($2)) declare($2, make_const(make_arr($4, $1)));
+    if (!check_redeclaration($2, FALSE)) declare($2, make_const(make_arr($4, $1)));
   }
   ;
 
@@ -149,10 +149,10 @@ def_list
 
 def
   : type_specifier ID ';' { 
-    if (!check_redeclaration($2)) declare($2, make_var($1));
+    if (!check_redeclaration($2, FALSE)) declare($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
-    if (!check_redeclaration($2)) declare($2, make_const(make_arr($4, $1))); 
+    if (!check_redeclaration($2, FALSE)) declare($2, make_const(make_arr($4, $1))); 
   }
   ;
 

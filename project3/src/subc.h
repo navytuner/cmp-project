@@ -13,6 +13,10 @@
 #include <string.h>
 #include <strings.h>
 
+/* TRUE, FALSE */
+#define TRUE 1
+#define FALSE 0
+
 /* SCOPE */
 #define SCOPE_INITSZ 10
 #define SCOPE_GLOB 1
@@ -120,7 +124,7 @@ decl_t *access_function(decl_t *func, decl_t *args);
 int ispass(decl_t *decl);
 int issametype(decl_t *tdecl1, decl_t *tdecl2);
 int check_undeclared(id *idptr);
-int check_redeclaration(id *idptr);
+int check_redeclaration(id *idptr, int isglob);
 int check_assignable(decl_t *decl);
 int check_incompatible(decl_t *lhs, decl_t *rhs);
 int check_null(decl_t *lhs, decl_t *rhs);

@@ -22,12 +22,20 @@ int check_undeclared(id *idptr) {
   return 0;
 }
 
-int check_redeclaration(id *idptr) {
-  if (lookup_cur(idptr)) {
-    error_redeclaration();
-    return 1;
+int check_redeclaration(id *idptr, int isglob) {
+  if (isglob) {
+    if (lookup(idptr)) {
+      error_redeclaration();
+      return 1;
+    }
+    return 0;
+  } else {
+    if (lookup_cur(idptr)) {
+      error_redeclaration();
+      return 1;
+    }
+    return 0;
   }
-  return 0;
 }
 
 int check_assignable(decl_t *decl) {
