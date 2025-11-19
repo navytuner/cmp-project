@@ -254,7 +254,7 @@ unary
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
   | unary '(' args ')'    { $$ = access_function($1, $3); } 
   | unary '(' ')'         { $$ = access_function($1, NULL); }
-  | SYM_NULL              { $$ = make_const(null_tdecl); }
+  | SYM_NULL              { $$ = make_const(make_ptr(null_tdecl)); }
   ;
 
 args

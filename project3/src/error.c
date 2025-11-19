@@ -59,7 +59,7 @@ int check_incompatible(decl_t *lhs, decl_t *rhs) {
     errflag = 1;
     return 1;
   }
-  if (rhs == null_tdecl && lhs->type->typeclass == TYPE_PTR)
+  if (rhs->ptrto == null_tdecl && lhs->type->typeclass == TYPE_PTR)
     return 0;
   if (!issametype(lhs->type, rhs)) {
     error_incompatible();
@@ -72,7 +72,7 @@ int check_incompatible(decl_t *lhs, decl_t *rhs) {
 int check_null(decl_t *lhs, decl_t *rhs) {
   if (ispass(lhs->type) || ispass(rhs))
     return 1;
-  if (rhs->typeclass == TYPE_NULL && lhs->type->typeclass != TYPE_PTR) {
+  if (rhs->ptrto == null_tdecl && lhs->type->typeclass != TYPE_PTR) {
     error_null();
     errflag = 1;
     return 1;
@@ -144,35 +144,23 @@ int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
   if (ispass(op1) || ispass(op2))
     return 1;
 
-  int type1 = op1->typeclass;
-  int type2 = op2->typeclass;
-  if (type1 != type2) {
+  if (tflag == (TYPE_INT | TYPE_CHAR)) {
+    if (op1 == op2 && (op2 == int_tdecl || op2 == char_tdecl))
+      return 0;
     error_comparable();
     errflag = 1;
     return 1;
   }
-  switch (tflag) {
-  case (TYPE_INT | TYPE_CHAR):
-    if (type1 != TYPE_INT && type1 != TYPE_CHAR) {
-      error_comparable();
-      errflag = 1;
-      return 1;
-    }
-    break;
-  case (TYPE_INT | TYPE_CHAR | TYPE_PTR):
-    if (type1 != TYPE_INT && type1 != TYPE_CHAR && type1 != TYPE_PTR) {
-      error_comparable();
-      errflag = 1;
-      return 1;
-    }
-    if (op1 == null_tdecl || op2 == null_tdecl)
+  if (tflag == (TYPE_INT | TYPE_CHAR | TYPE_PTR)) {
+    if (op1->typeclass == TYPE_PTR && op2->typeclass == TYPE_PTR &&
+        ((op1->ptrto == op2->ptrto) ||
+         (op1->ptrto == null_tdecl || op2->ptrto == null_tdecl)))
       return 0;
-    if (!issametype(op1, op2)) {
-      error_comparable();
-      errflag = 1;
-      return 1;
-    }
-    break;
+    if (op1 == op2 && (op2 == int_tdecl || op2 == char_tdecl))
+      return 0;
+    error_comparable();
+    errflag = 1;
+    return 1;
   }
   return 0;
 }
@@ -320,10 +308,7 @@ int check_arguments(decl_t *func, decl_t *args) {
   return 0;
 }
 
-// Print the preamble of error message.
 void error_preamble(void) {
-  // TODO
-  // Implement this function using get_lineno() function.
   printf("%s:%d: error: ", get_filename(), get_lineno());
 }
 
