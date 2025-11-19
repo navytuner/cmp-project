@@ -165,6 +165,8 @@ int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
       errflag = 1;
       return 1;
     }
+    if (op1 == null_tdecl || op2 == null_tdecl)
+      return 0;
     if (!issametype(op1, op2)) {
       error_comparable();
       errflag = 1;

@@ -13,53 +13,44 @@ decl_t *char_tdecl;
 decl_t *string_tdecl;
 decl_t *pass_tdecl;
 decl_t *null_tdecl;
+id *intid;
+id *charid;
 id *returnid;
 int errflag;
 
+decl_t *init_tdecl(int typeclass) {
+  decl_t *tdecl = (decl_t *)calloc(1, sizeof(decl_t));
+  tdecl->typeclass = typeclass;
+}
+
+id *init_id(int toktype, char *name) {
+  return enter(toktype, name, strlen(name));
+}
+
 void init_scope(void) {
+  /* reset error flag */
+  errflag = 0;
+
+  /* init id */
+  intid = init_id(TYPE, "int");
+  charid = init_id(TYPE, "char");
+  returnid = init_id(ID, "*return");
+
+  /* init tdecl */
+  int_tdecl = init_tdecl(TYPE_INT);
+  char_tdecl = init_tdecl(TYPE_CHAR);
+  null_tdecl = init_tdecl(TYPE_NULL);
+  string_tdecl = init_tdecl(TYPE_STRING);
+  pass_tdecl = init_tdecl(TYPE_PASS);
+
+  /* init scope */
   top = 0;
   scope = (ste_t **)calloc(SCOPE_INITSZ, sizeof(ste_t *));
   scope[0] = NULL; // scope[0]: dummy node
   capacity = SCOPE_INITSZ;
-}
-
-void init_type(void) {
-  errflag = 0;
-  char *types[] = {"int", "char", NULL};
-  int class[] = {TYPE_INT, TYPE_CHAR, 0};
   push_scope();
-  for (int i = 0; types[i] != NULL; i++) {
-    id *idptr = enter(TYPE, types[i], strlen(types[i]));
-    decl_t *declptr = (decl_t *)calloc(1, sizeof(decl_t));
-    declptr->declclass = DECL_TYPE;
-    declptr->typeclass = class[i];
-
-    // assign declptr to tdecl variables
-    switch (class[i]) {
-    case TYPE_INT:
-      int_tdecl = declptr;
-      break;
-    case TYPE_CHAR:
-      char_tdecl = declptr;
-      break;
-    }
-    declare(idptr, declptr);
-  }
-
-  /* TYPE_NULL */
-  null_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
-  null_tdecl->declclass = DECL_TYPE;
-  null_tdecl->typeclass = TYPE_NULL;
-
-  /* TYPE_STRING, TYPE_PASS */
-  string_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
-  string_tdecl->declclass = DECL_TYPE;
-  string_tdecl->typeclass = TYPE_STRING;
-
-  pass_tdecl = (decl_t *)calloc(1, sizeof(decl_t));
-  pass_tdecl->declclass = DECL_TYPE;
-  pass_tdecl->typeclass = TYPE_PASS;
-  returnid = enter(ID, "*return", 7);
+  declare(intid, int_tdecl);
+  declare(charid, char_tdecl);
 }
 
 void push_scope(void) {

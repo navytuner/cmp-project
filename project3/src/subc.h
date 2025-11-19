@@ -27,7 +27,6 @@
 #define DECL_FUNC 2
 #define DECL_TYPE 3
 #define DECL_NULL 4
-#define DECL_PASS 5
 
 /* TYPE CLASSS */
 #define TYPE_INT 1
@@ -92,8 +91,9 @@ id *enter(int tokenType, char *name, int length);
 
 /* decl.c */
 // scope functions
+decl_t *init_tdecl(int typeclass);
+id *init_id(int toktype, char *name);
 void init_scope(void);
-void init_type(void);
 void push_scope(void);
 ste_t *pop_scope(int isfree);
 void finish_scope(void);                         // free scope

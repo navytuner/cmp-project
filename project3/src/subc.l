@@ -136,7 +136,6 @@ int main(int argc, char* argv[]) {
   // init
   init_hash();
   init_scope();
-  init_type();
 
   // I/O stream settings
   if (argc >= 2) {
