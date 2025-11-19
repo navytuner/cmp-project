@@ -80,6 +80,7 @@ extern decl_t *string_tdecl;
 extern decl_t *pass_tdecl;
 extern decl_t *null_tdecl;
 extern id *returnid;
+extern int errflag;
 
 int get_lineno();
 char *get_filename();

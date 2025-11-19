@@ -14,6 +14,7 @@ decl_t *string_tdecl;
 decl_t *pass_tdecl;
 decl_t *null_tdecl;
 id *returnid;
+int errflag;
 
 void init_scope(void) {
   top = 0;
@@ -23,6 +24,7 @@ void init_scope(void) {
 }
 
 void init_type(void) {
+  errflag = 0;
   char *types[] = {"int", "char", NULL};
   int class[] = {TYPE_INT, TYPE_CHAR, 0};
   push_scope();

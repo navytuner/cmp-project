@@ -116,7 +116,7 @@ special_char  \\[nt]
 <COMMENT>.
 
   /* Tracking line numbers */
-<*>\n                           { ++lineno; }
+<*>\n                           { ++lineno; errflag = 0; }
 .                               {;}
 
 %%
