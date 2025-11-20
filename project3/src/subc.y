@@ -234,9 +234,9 @@ binary
   ;
 
 unary
-  : '(' expr ')'          { $$ = make_const($2); }
-  | INTEGER_CONST         { $$ = make_const(int_tdecl); $$->intval = $1; }
-  | CHAR_CONST            { $$ = make_const(char_tdecl); $$->charval = $1; }
+  : '(' expr ')'          { $$ = ($2->isconst)? make_const($2) : make_var($2); }
+  | INTEGER_CONST         { $$ = make_const(int_tdecl_const); $$->intval = $1; }
+  | CHAR_CONST            { $$ = make_const(char_tdecl_const); $$->charval = $1; }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 
   | ID                    { $$ = (!check_undeclared($1))? lookup($1) : make_const(pass_tdecl); }
   | '-' unary %prec '!'   { $$ = (!check_unary($2, TYPE_INT))? $2 : make_const(pass_tdecl); }

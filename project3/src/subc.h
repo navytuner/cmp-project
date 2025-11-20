@@ -62,6 +62,7 @@ typedef struct decl {
   struct decl *returntype; // FUNC: return TYPE decl
 
   int typeclass;           // TYPE: type class(INT, array, ptr)
+  int isconst;             // TYPE: 1(came from CONST), 0(came from var/func)
   struct decl *elementvar; // TYPE(array): point to element VAR decl
   int len_arr;             // TYPE(array): # of elements
   struct ste *fields;      // TYPE(struct): point to field list
@@ -74,7 +75,9 @@ typedef struct decl {
 
 extern ste_t **scope;
 extern decl_t *int_tdecl;
+extern decl_t *int_tdecl_const;
 extern decl_t *char_tdecl;
+extern decl_t *char_tdecl_const;
 extern decl_t *string_tdecl;
 extern decl_t *pass_tdecl;
 extern decl_t *null_tdecl;

@@ -8,8 +8,9 @@ int capacity;
 
 // tdecl variables
 decl_t *int_tdecl;
-decl_t *float_tdecl;
+decl_t *int_tdecl_const;
 decl_t *char_tdecl;
+decl_t *char_tdecl_const;
 decl_t *string_tdecl;
 decl_t *pass_tdecl;
 decl_t *null_tdecl;
@@ -38,10 +39,14 @@ void init_scope(void) {
 
   /* init tdecl */
   int_tdecl = init_tdecl(TYPE_INT);
+  int_tdecl_const = init_tdecl(TYPE_INT);
   char_tdecl = init_tdecl(TYPE_CHAR);
+  char_tdecl_const = init_tdecl(TYPE_CHAR);
   null_tdecl = init_tdecl(TYPE_NULL);
   string_tdecl = init_tdecl(TYPE_STRING);
   pass_tdecl = init_tdecl(TYPE_PASS);
+  int_tdecl_const->isconst = 1;
+  char_tdecl_const->isconst = 1;
 
   /* init scope */
   top = 0;
@@ -171,6 +176,7 @@ decl_t *make_const(decl_t *tdecl) {
   decl_t *constdecl = (decl_t *)calloc(1, sizeof(decl_t));
   constdecl->declclass = DECL_CONST;
   constdecl->type = tdecl;
+  tdecl->isconst = 1;
   return constdecl;
 }
 

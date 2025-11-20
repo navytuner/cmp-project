@@ -6,12 +6,24 @@ int ispass(decl_t *tdecl) { return (tdecl == pass_tdecl); }
 int issametype(decl_t *tdecl1, decl_t *tdecl2) {
   if (!tdecl1 || !tdecl2)
     return 0;
-  if (tdecl1 == tdecl2)
+
+  int type1 = tdecl1->typeclass;
+  int type2 = tdecl2->typeclass;
+  if (type1 != type2)
+    return 0;
+  switch (type1) {
+  case TYPE_INT:
+  case TYPE_CHAR:
     return 1;
-  if (tdecl1->typeclass == TYPE_PTR && tdecl2->typeclass == TYPE_PTR &&
-      tdecl1->ptrto == tdecl2->ptrto)
-    return 1;
-  // if (tdecl1->typeclass == TYPE_ARRAY && tdecl2->typeclass == TYPE_ARRAY && )
+  case TYPE_ARRAY:
+    decl_t *arr_tdecl1 = tdecl1->elementvar->type;
+    decl_t *arr_tdecl2 = tdecl2->elementvar->type;
+    return issametype(arr_tdecl1, arr_tdecl2);
+  case TYPE_PTR:
+    return issametype(tdecl1->ptrto, tdecl2->ptrto);
+  case TYPE_STRUCT:
+    return (tdecl1 == tdecl2);
+  }
   return 0;
 }
 
@@ -85,7 +97,9 @@ int check_binary(decl_t *op1, decl_t *op2, int tflag) {
   if (ispass(op1) || ispass(op2))
     return 1;
 
-  if (op1 != op2) {
+  int tcl1 = op1->typeclass;
+  int tcl2 = op2->typeclass;
+  if (tcl1 != tcl2) {
     error_binary();
     errflag = 1;
     return 1;
@@ -93,14 +107,14 @@ int check_binary(decl_t *op1, decl_t *op2, int tflag) {
 
   switch (tflag) {
   case TYPE_INT:
-    if (op1 != int_tdecl) {
+    if (tcl1 != TYPE_INT) {
       error_binary();
       errflag = 1;
       return 1;
     }
     break;
   case TYPE_CHAR:
-    if (op1 != char_tdecl) {
+    if (tcl1 != TYPE_CHAR) {
       error_binary();
       errflag = 1;
       return 1;
@@ -117,21 +131,21 @@ int check_unary(decl_t *decl, int tflag) {
   decl_t *tdecl = decl->type;
   switch (tflag) {
   case (TYPE_INT | TYPE_CHAR):
-    if (tdecl != int_tdecl && tdecl != char_tdecl) {
+    if (tdecl->typeclass != TYPE_INT && tdecl->typeclass != TYPE_CHAR) {
       error_unary();
       errflag = 1;
       return 1;
     }
     break;
   case TYPE_INT:
-    if (tdecl != int_tdecl) {
+    if (tdecl->typeclass != TYPE_INT) {
       error_unary();
       errflag = 1;
       return 1;
     }
     break;
   case TYPE_CHAR:
-    if (tdecl != char_tdecl) {
+    if (tdecl->typeclass != TYPE_CHAR) {
       error_unary();
       errflag = 1;
       return 1;
@@ -145,19 +159,21 @@ int check_comparable(decl_t *op1, decl_t *op2, int tflag) {
   if (ispass(op1) || ispass(op2))
     return 1;
 
+  int tclass1 = op1->typeclass;
+  int tclass2 = op2->typeclass;
   if (tflag == (TYPE_INT | TYPE_CHAR)) {
-    if (op1 == op2 && (op2 == int_tdecl || op2 == char_tdecl))
+    if (tclass1 == tclass2 && (tclass1 == TYPE_INT || tclass1 == TYPE_CHAR))
       return 0;
     error_comparable();
     errflag = 1;
     return 1;
   }
   if (tflag == (TYPE_INT | TYPE_CHAR | TYPE_PTR)) {
-    if (op1->typeclass == TYPE_PTR && op2->typeclass == TYPE_PTR &&
-        ((op1->ptrto == op2->ptrto) ||
+    if (tclass1 == TYPE_PTR && tclass2 == TYPE_PTR &&
+        (issametype(op1, op2) ||
          (op1->ptrto == null_tdecl || op2->ptrto == null_tdecl)))
       return 0;
-    if (op1 == op2 && (op2 == int_tdecl || op2 == char_tdecl))
+    if (tclass1 == tclass2 && (tclass1 == TYPE_INT || tclass1 == TYPE_CHAR))
       return 0;
     error_comparable();
     errflag = 1;
@@ -183,6 +199,8 @@ int check_addressof(decl_t *op) {
     return 1;
 
   if (op->declclass != DECL_VAR) {
+    if (op->type && op->type->isconst == 0)
+      return 0;
     error_addressof();
     errflag = 1;
     return 1;
@@ -243,7 +261,7 @@ int check_subscript(decl_t *idxdecl) {
   if (ispass(idxdecl))
     return 1;
 
-  if (idxdecl != int_tdecl) {
+  if (idxdecl->typeclass != TYPE_INT) {
     error_subscript();
     errflag = 1;
     return 1;
