@@ -111,7 +111,7 @@ func_decl
     $<declptr>$ = make_func($1);
     if (!check_redeclaration($2, TRUE)) declare($2, $<declptr>$);
     push_scope();
-    declare(returnid, make_const($1));
+    declare(returnid, make_var($1));
   } ')' {
     $<declptr>4->formals = pop_scope(0);
     $$ = $<declptr>4;
@@ -120,7 +120,7 @@ func_decl
     $<declptr>$ = make_func($1);
     if (!check_redeclaration($2, TRUE)) declare($2, $<declptr>$);
     push_scope(); 
-    declare(returnid, make_const($1));
+    declare(returnid, make_var($1));
   } param_list ')' { 
     $<declptr>4->formals = pop_scope(0);
     $$ = $<declptr>4;
@@ -196,11 +196,11 @@ expr
 binary
   : binary RELOP binary {
     if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR))) $$ = pass_tdecl;
-    else $$ = int_tdecl;
+    else $$ = int_tdecl_const;
   }
   | binary EQUOP binary {
     if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR | TYPE_PTR))) $$ = pass_tdecl;
-    else $$ = int_tdecl;
+    else $$ = int_tdecl_const;
   }
   | binary '+' binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
