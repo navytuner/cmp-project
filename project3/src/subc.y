@@ -14,7 +14,6 @@ int   yylex();
 int   yyerror(char* s);
 char* yyget_text();
 void  reduce(char* s);
-int blockcnt = 0; // for debugging
 %}
 
 /* Bison declarations section */
@@ -78,7 +77,6 @@ ext_def
   | func_decl {
     push_scope();
     insert_ste_list($1->formals); 
-    blockcnt++;
   } compound_func_stmt { 
     pop_scope(0); 
   }

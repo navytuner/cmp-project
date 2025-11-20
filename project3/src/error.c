@@ -11,6 +11,7 @@ int issametype(decl_t *tdecl1, decl_t *tdecl2) {
   if (tdecl1->typeclass == TYPE_PTR && tdecl2->typeclass == TYPE_PTR &&
       tdecl1->ptrto == tdecl2->ptrto)
     return 1;
+  // if (tdecl1->typeclass == TYPE_ARRAY && tdecl2->typeclass == TYPE_ARRAY && )
   return 0;
 }
 

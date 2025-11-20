@@ -186,15 +186,7 @@ decl_t *make_arr(int len, decl_t *tdecl) {
   arrdecl->declclass = DECL_TYPE;
   arrdecl->typeclass = TYPE_ARRAY;
   arrdecl->len_arr = len;
-
-  decl_t *vardecl;
-  decl_t *nextdecl = NULL;
-  for (int i = 0; i < len; i++) {
-    vardecl = make_var(tdecl);
-    vardecl->next = nextdecl;
-    nextdecl = vardecl;
-  }
-  arrdecl->elementvar = vardecl;
+  arrdecl->elementvar = make_var(tdecl);
   return arrdecl;
 }
 
