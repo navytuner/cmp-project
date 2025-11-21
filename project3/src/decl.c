@@ -173,6 +173,11 @@ decl_t *make_var(decl_t *tdecl) {
 }
 
 decl_t *make_const(decl_t *tdecl) {
+  if (tdecl == int_tdecl)
+    tdecl = int_tdecl_const;
+  else if (tdecl == char_tdecl)
+    tdecl = char_tdecl_const;
+
   decl_t *constdecl = (decl_t *)calloc(1, sizeof(decl_t));
   constdecl->declclass = DECL_CONST;
   constdecl->type = tdecl;
@@ -183,7 +188,12 @@ decl_t *make_const(decl_t *tdecl) {
 decl_t *make_func(decl_t *rettype) {
   decl_t *funcdecl = (decl_t *)calloc(1, sizeof(decl_t));
   funcdecl->declclass = DECL_FUNC;
-  funcdecl->returntype = rettype;
+  if (rettype == int_tdecl)
+    funcdecl->returntype = int_tdecl_const;
+  else if (rettype == char_tdecl)
+    funcdecl->returntype = char_tdecl_const;
+  else
+    funcdecl->returntype = rettype;
   return funcdecl;
 }
 

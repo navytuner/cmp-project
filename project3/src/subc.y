@@ -243,12 +243,12 @@ unary
   | CHAR_CONST            { $$ = make_const(char_tdecl_const); $$->charval = $1; }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 
   | ID                    { $$ = (!check_undeclared($1))? lookup($1) : make_const(pass_tdecl); }
-  | '-' unary %prec '!'   { $$ = (!check_unary($2, TYPE_INT))? $2 : make_const(pass_tdecl); }
-  | '!' unary             { $$ = (!check_unary($2, TYPE_INT))? $2 : make_const(pass_tdecl); }
-  | unary INCOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : make_const(pass_tdecl); }
-  | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? $1 : make_const(pass_tdecl); }
-  | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_const(pass_tdecl); }
-  | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? $2 : make_const(pass_tdecl); }
+  | '-' unary %prec '!'   { $$ = (!check_unary($2, TYPE_INT))? make_const($2->type) : make_const(pass_tdecl); }
+  | '!' unary             { $$ = (!check_unary($2, TYPE_INT))? make_const($2->type) : make_const(pass_tdecl); }
+  | unary INCOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? make_const($1->type) : make_const(pass_tdecl); }
+  | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? make_const($1->type) : make_const(pass_tdecl); }
+  | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? make_const($2->type) : make_const(pass_tdecl); }
+  | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? make_const($2->type) : make_const(pass_tdecl); }
   | '&' unary             { $$ = (!check_addressof($2))? make_const(make_ptr($2->type)) : make_const(pass_tdecl); }
   | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_var($2->type->ptrto) : make_var(pass_tdecl); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
