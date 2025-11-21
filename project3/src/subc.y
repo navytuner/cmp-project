@@ -188,7 +188,11 @@ expr_e
 expr
   : unary '=' expr {
     if (check_assignable($1) || check_null($1, $3) || check_incompatible($1, $3)) $$ = pass_tdecl;
-    else $$ = $3;
+    else {
+      if ($3 == int_tdecl) $$ = int_tdecl_const;
+      else if ($3 == char_tdecl) $$ = char_tdecl_const;
+      else $$ = $3; 
+    }
   }
   | binary { $$ = $1; }
   ;
@@ -204,32 +208,32 @@ binary
   }
   | binary '+' binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl_const; 
   }
   | binary '-' binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl_const; 
   } 
   | binary '*' binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl_const; 
   } 
   | binary '/' binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl_const; 
   } 
   | binary '%' binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl_const; 
   } 
   | unary %prec '=' { $$ = $1->type; }
   | binary LOGICAL_AND binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl_const; 
   }
   | binary LOGICAL_OR binary { 
     if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = $1;
+    else $$ = int_tdecl_const; 
   }
   ;
 

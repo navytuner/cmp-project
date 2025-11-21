@@ -176,7 +176,7 @@ decl_t *make_const(decl_t *tdecl) {
   decl_t *constdecl = (decl_t *)calloc(1, sizeof(decl_t));
   constdecl->declclass = DECL_CONST;
   constdecl->type = tdecl;
-  // tdecl->isconst = 1;
+  tdecl->isconst = 1;
   return constdecl;
 }
 
