@@ -68,10 +68,10 @@ ext_def_list
 /* global variables, struct declaration, function declaration */
 ext_def
   : type_specifier ID ';' {
-    declare($2, make_var($1));
+    if (!check_redeclaration($2, TRUE)) declare($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' {
-    declare($2, make_const(make_arr($4, $1)));
+    if (!check_redeclaration($2, TRUE)) declare($2, make_const(make_arr($4, $1)));
   }
   | struct_specifier ';'     {}
   | func_decl {

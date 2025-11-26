@@ -18,7 +18,7 @@
 #define FALSE 0
 
 /* SCOPE */
-#define SCOPE_INITSZ 10
+#define SCOPE_INITSZ 256
 #define SCOPE_GLOB 1
 
 /* DECL CLASS*/
@@ -114,7 +114,6 @@ decl_t *make_func(decl_t *rettype);
 decl_t *make_arr(int, decl_t *tdecl);
 decl_t *make_ptr(decl_t *target);
 decl_t *make_str(ste_t *ste);
-// decl_t *make_null(void);
 decl_t *make_arg(decl_t *tdecl, decl_t *nextarg);
 
 // access
