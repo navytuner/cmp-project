@@ -131,6 +131,11 @@ int check_unary(decl_t *decl, int tflag) {
   decl_t *tdecl = decl->type;
   switch (tflag) {
   case (TYPE_INT | TYPE_CHAR):
+    if (decl->declclass != DECL_VAR) {
+      error_unary();
+      errflag = 1;
+      return 1;
+    }
     if (tdecl->typeclass != TYPE_INT && tdecl->typeclass != TYPE_CHAR) {
       error_unary();
       errflag = 1;
