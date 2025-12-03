@@ -6,3 +6,9 @@ settings.json
 testcase/*
 testcase
 *.zip
+subc.tab.h 
+subc.tab.c 
+lex.yy.c 
+subc
+*.o
+.gdb_history
