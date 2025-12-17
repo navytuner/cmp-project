@@ -4,12 +4,77 @@
 #include <stdlib.h>
 #include <string.h>
 #define MX 500
+extern FILE *yyout;
 
-FILE *yyout;
+int strnum;
 
-void push_const(int n) {
+void init_gen(void) {
+  strnum = 0;
+  push_const_label("EXIT", 0);
+  push_reg("fp");
+  push_reg("sp");
+  pop_reg("fp");
+  jump("main", 0);
+  gen_label("EXIT", LABEL_PLAIN);
+  gen_exit();
+}
+
+void func_epilogue(char *func_name) {
+  gen_label(func_name, LABEL_FINAL);
+
+  // restore registers
+  push_reg("fp");
+  pop_reg("sp");
+  pop_reg("fp");
+  pop_reg("pc");
+
+  gen_label(func_name, LABEL_END);
+}
+
+void gen_label(char *label, int flag) {
+  char buf[MX];
+  strncpy(buf, label, MX);
+  switch (flag) {
+  case LABEL_PLAIN:
+    strcat(buf, ":\n");
+    break;
+  case LABEL_START:
+    strcat(buf, "_start:\n");
+    break;
+  case LABEL_FINAL:
+    strcat(buf, "_final:\n");
+    break;
+  case LABEL_END:
+    strcat(buf, "_end:\n");
+    break;
+  }
+  fwrite(buf, 1, strlen(buf), yyout);
+}
+
+void gen_string(char *str) {
+  char buf[MX];
+  sprintf(buf, "str_%d. string \"%s\"", strnum++, str);
+  fwrite(buf, 1, strlen(buf), yyout);
+}
+
+void gen_globlabel(void) {
+  char buf[MX];
+  sprintf(buf, "Lglob.  data %d\n", glob_offset);
+  fwrite(buf, 1, strlen(buf), yyout);
+}
+
+void push_const_int(int n) {
   char buf[MX];
   sprintf(buf, "        push_const %d\n", n);
+  fwrite(buf, 1, strlen(buf), yyout);
+}
+
+void push_const_label(char *label, int offset) {
+  char buf[MX];
+  if (offset == 0)
+    sprintf(buf, "        push_const %s\n", label);
+  else
+    sprintf(buf, "        push_const %s+%d\n", label, offset);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 

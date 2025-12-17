@@ -27,6 +27,7 @@
 #define DECL_FUNC 2
 #define DECL_TYPE 3
 #define DECL_NULL 4
+#define DECL_FUNC_BUILTIN 5
 
 /* TYPE CLASSS */
 #define TYPE_INT 1
@@ -37,6 +38,11 @@
 #define TYPE_STRUCT 6
 #define TYPE_PASS 7
 #define TYPE_NULL 8
+
+#define LABEL_PLAIN 0
+#define LABEL_START 1
+#define LABEL_FINAL 2
+#define LABEL_END 3
 
 typedef struct id {
   int tokenType;
@@ -58,6 +64,7 @@ typedef struct decl {
   char charval;    // CONST: char value
   char *stringval; // CONST: string value
 
+  id *funcid;              // FUNC: built-in function id
   struct ste *formals;     // FUNC: formal argument list
   struct decl *returntype; // FUNC: return TYPE decl
 
@@ -83,15 +90,22 @@ extern decl_t *string_tdecl;
 extern decl_t *pass_tdecl;
 extern decl_t *null_tdecl;
 extern id *returnid;
+extern id *curfunc;
 extern int errflag;
-extern FILE *yyout;
+extern int glob_offset;
 
 int get_lineno();
 char *get_filename();
 
 /* gen.c */
 // generate codes
-void push_const(int n);
+void init_gen(void);
+void func_epilogue(char *func_name);
+void gen_label(char *label, int flag);
+void gen_string(char *str);
+void gen_globlabel(void);
+void push_const_int(int n);
+void push_const_label(char *label, int offset);
 void push_reg(char *reg);
 void pop_reg(char *reg);
 void shift_sp(int n);
@@ -144,6 +158,7 @@ decl_t *lookup_cur(id *idptr); // find idptr at the current scope
 decl_t *make_var(decl_t *tdecl);
 decl_t *make_const(decl_t *tdecl);
 decl_t *make_func(decl_t *rettype);
+decl_t *make_func_builtin(id *idptr);
 decl_t *make_arr(int, decl_t *tdecl);
 decl_t *make_ptr(decl_t *target);
 decl_t *make_str(ste_t *ste);

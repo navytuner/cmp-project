@@ -57,7 +57,7 @@ void  reduce(char* s);
 
 /* Grammar rules section*/
 program
-  : ext_def_list {}
+  : ext_def_list { gen_globlabel(); }
   ;
 
 ext_def_list
@@ -68,10 +68,10 @@ ext_def_list
 /* global variables, struct declaration, function declaration */
 ext_def
   : type_specifier ID ';' {
-    declare($2, make_var($1));
+    declare_glob($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' {
-    declare($2, make_const(make_arr($4, $1)));
+    declare_glob($2, make_const(make_arr($4, $1)));
   }
   | struct_specifier ';'     {}
   | func_decl {
@@ -91,25 +91,23 @@ type_specifier
 
 struct_specifier
   : STRUCT ID {
-    if (!check_redeclaration($2, TRUE)) {
-      $<declptr>$ = make_str(NULL);
-      declare_glob($2, $<declptr>$);
-    }
-    else $<declptr>$ = pass_tdecl;
+    $<declptr>$ = make_str(NULL);
   } '{' { 
     push_scope(); 
   } def_list '}' { 
-    if ($<declptr>3 == pass_tdecl) pop_scope(0);
-    else $<declptr>3->fields = pop_scope(0);
+    $<declptr>3->fields = pop_scope(0);
+    declare_glob($2, $<declptr>3);
     $$ = $<declptr>3;
   }
-  | STRUCT ID { $$ = (!check_incomplete($2))? lookup($2) : pass_tdecl; }
+  | STRUCT ID { $$ = lookup($2); }
   ;
 
 func_decl
   : type_specifier ID '(' {
+    gen_label($2->name, LABEL_PLAIN);
+    curfunc = $2;
     $<declptr>$ = make_func($1);
-    if (!check_redeclaration($2, TRUE)) declare($2, $<declptr>$);
+    declare($2, $<declptr>$);
     push_scope();
     declare(returnid, make_var($1));
   } ')' {
@@ -117,8 +115,10 @@ func_decl
     $$ = $<declptr>4;
   }
   | type_specifier ID '(' { 
+    gen_label($2->name, LABEL_PLAIN);
+    curfunc = $2;
     $<declptr>$ = make_func($1);
-    if (!check_redeclaration($2, TRUE)) declare($2, $<declptr>$);
+    declare($2, $<declptr>$);
     push_scope(); 
     declare(returnid, make_var($1));
   } param_list ')' { 
@@ -134,9 +134,9 @@ param_list
 
 param_decl
   : type_specifier ID { 
-    if (!check_redeclaration($2, FALSE)) declare($2, make_var($1)); }
+    declare($2, make_var($1)); }
   | type_specifier ID '[' INTEGER_CONST ']' { 
-    if (!check_redeclaration($2, FALSE)) declare($2, make_const(make_arr($4, $1)));
+    declare($2, make_const(make_arr($4, $1)));
   }
   ;
 
@@ -147,10 +147,10 @@ def_list
 
 def
   : type_specifier ID ';' { 
-    if (!check_redeclaration($2, FALSE)) declare($2, make_var($1));
+    declare($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
-    if (!check_redeclaration($2, FALSE)) declare($2, make_const(make_arr($4, $1))); 
+    declare($2, make_const(make_arr($4, $1))); 
   }
   ;
 
@@ -159,7 +159,11 @@ compound_stmt
   ;
 
 compound_func_stmt
-  : '{' def_list stmt_list '}'
+  : '{' def_list {
+    gen_label(curfunc->name, LABEL_START);
+  } stmt_list '}' {
+    func_epilogue(curfunc->name);
+  }
   ;
 
 stmt_list
@@ -187,12 +191,9 @@ expr_e
 
 expr
   : unary '=' expr {
-    if (check_assignable($1) || check_null($1, $3) || check_incompatible($1, $3)) $$ = pass_tdecl;
-    else {
-      if ($3 == int_tdecl) $$ = int_tdecl_const;
-      else if ($3 == char_tdecl) $$ = char_tdecl_const;
-      else $$ = $3; 
-    }
+    if ($3 == int_tdecl) $$ = int_tdecl_const;
+    else if ($3 == char_tdecl) $$ = char_tdecl_const;
+    else $$ = $3; 
   }
   | binary { $$ = $1; }
   ;
@@ -214,16 +215,16 @@ unary
   : '(' expr ')'          { $$ = ($2->isconst)? make_const($2) : make_var($2); }
   | INTEGER_CONST         { $$ = make_const(int_tdecl_const); $$->intval = $1; }
   | CHAR_CONST            { $$ = make_const(char_tdecl_const); $$->charval = $1; }
-  | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; } 
-  | ID                    { $$ = (!check_undeclared($1))? lookup($1) : make_const(pass_tdecl); }
-  | '-' unary %prec '!'   { $$ = (!check_unary($2, TYPE_INT))? make_const($2->type) : make_const(pass_tdecl); }
-  | '!' unary             { $$ = (!check_unary($2, TYPE_INT))? make_const($2->type) : make_const(pass_tdecl); }
-  | unary INCOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? make_const($1->type) : make_const(pass_tdecl); }
-  | unary DECOP %prec '.' { $$ = (!check_unary($1, TYPE_INT | TYPE_CHAR))? make_const($1->type) : make_const(pass_tdecl); }
-  | INCOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? make_const($2->type) : make_const(pass_tdecl); }
-  | DECOP unary           { $$ = (!check_unary($2, TYPE_INT | TYPE_CHAR))? make_const($2->type) : make_const(pass_tdecl); }
-  | '&' unary             { $$ = (!check_addressof($2))? make_const(make_ptr($2->type)) : make_const(pass_tdecl); }
-  | '*' unary %prec '!'   { $$ = (!check_indirection($2))? make_var($2->type->ptrto) : make_var(pass_tdecl); }
+  | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; gen_string($1); } 
+  | ID                    { $$ = lookup($1); }
+  | '-' unary %prec '!'   { $$ = make_const($2->type); }
+  | '!' unary             { $$ = make_const($2->type); }
+  | unary INCOP %prec '.' { $$ = make_const($1->type); }
+  | unary DECOP %prec '.' { $$ = make_const($1->type); }
+  | INCOP unary           { $$ = make_const($2->type); }
+  | DECOP unary           { $$ = make_const($2->type); }
+  | '&' unary             { $$ = make_const(make_ptr($2->type)); }
+  | '*' unary %prec '!'   { $$ = make_var($2->type->ptrto); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }

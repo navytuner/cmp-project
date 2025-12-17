@@ -133,10 +133,6 @@ int get_lineno(void){
 }
 
 int main(int argc, char* argv[]) {
-  // init
-  init_hash();
-  init_scope();
-
   // I/O stream settings
   if (argc >= 3) {
     yyin = fopen(argv[1], "r");
@@ -153,14 +149,15 @@ int main(int argc, char* argv[]) {
     filename = NULL;
   }
 
-  if(!yyin) {
-    printf("Can't open input stream!\n");
+  if(!yyin || !yyout) {
+    printf("Can't open input/output stream!\n");
     exit(1);
   }
-  if (!yyout) {
-    printf("Can't open output stream!\n");
-    exit(1);
-  }
+
+  // init
+  init_hash();
+  init_scope();
+  init_gen();
   
   yyparse();
   fclose(yyin);

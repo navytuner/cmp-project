@@ -7,6 +7,7 @@ int top;
 int capacity;
 
 // tdecl variables
+decl_t *func_builtin_decl;
 decl_t *int_tdecl;
 decl_t *int_tdecl_const;
 decl_t *char_tdecl;
@@ -17,6 +18,10 @@ decl_t *null_tdecl;
 id *intid;
 id *charid;
 id *returnid;
+id *write_int_id;
+id *write_char_id;
+id *write_string_id;
+id *curfunc;
 int errflag;
 
 // global offset counter
@@ -40,6 +45,9 @@ void init_scope(void) {
   intid = init_id(TYPE, "int");
   charid = init_id(TYPE, "char");
   returnid = init_id(ID, "*return");
+  write_int_id = init_id(ID, "write_int");
+  write_char_id = init_id(ID, "write_char");
+  write_string_id = init_id(ID, "write_string");
 
   /* init tdecl */
   int_tdecl = init_tdecl(TYPE_INT);
@@ -60,6 +68,11 @@ void init_scope(void) {
   push_scope();
   declare(intid, int_tdecl);
   declare(charid, char_tdecl);
+
+  /* built-in functions */
+  declare(write_int_id, make_func_builtin(write_int_id));
+  declare(write_char_id, make_func_builtin(write_char_id));
+  declare(write_string_id, make_func_builtin(write_string_id));
 }
 
 void push_scope(void) {
@@ -133,6 +146,16 @@ ste_t *declare_glob(id *idptr, decl_t *declptr) {
   ste_t *newste = (ste_t *)calloc(1, sizeof(ste_t));
   newste->id = idptr;
   newste->decl = declptr;
+  if (declptr->declclass == DECL_VAR) {
+    // variable
+    declptr->offset = glob_offset++;
+  } else if (declptr->declclass == DECL_CONST) {
+    // array
+    decl_t *arr_decl = declptr->type;
+
+  } else {
+    // struct
+  }
 
   newste->prev = scope[SCOPE_GLOB];
   scope[SCOPE_GLOB] = newste;
@@ -173,7 +196,7 @@ decl_t *make_var(decl_t *tdecl) {
   decl_t *vardecl = (decl_t *)calloc(1, sizeof(decl_t));
   vardecl->declclass = DECL_VAR;
   vardecl->type = tdecl;
-  vardecl->offset = glob_offset++;
+  // vardecl->offset = glob_offset++;
   vardecl->size = 1;
   return vardecl;
 }
@@ -203,6 +226,13 @@ decl_t *make_func(decl_t *rettype) {
   return funcdecl;
 }
 
+decl_t *make_func_builtin(id *idptr) {
+  decl_t *funcdecl = (decl_t *)calloc(1, sizeof(decl_t));
+  funcdecl->declclass = DECL_FUNC_BUILTIN;
+  funcdecl->funcid = idptr;
+  return funcdecl;
+}
+
 decl_t *make_arr(int len, decl_t *tdecl) {
   decl_t *arrdecl = (decl_t *)calloc(1, sizeof(decl_t));
   arrdecl->declclass = DECL_TYPE;
@@ -229,7 +259,7 @@ decl_t *make_str(ste_t *fields) {
 }
 
 decl_t *make_arg(decl_t *tdecl, decl_t *nextarg) {
-  decl_t *newarg = make_var(tdecl);
+  decl_t *newarg = make_const(tdecl);
   newarg->next = nextarg;
   return newarg;
 }
@@ -256,7 +286,15 @@ decl_t *access_structp(decl_t *strpvar, id *fieldid) {
 }
 
 decl_t *access_function(decl_t *func, decl_t *args) {
-  if (check_function(func) || check_arguments(func, args))
-    return make_const(pass_tdecl);
+  if (func->declclass == DECL_FUNC_BUILTIN) {
+    if (func->funcid == write_int_id) {
+
+    } else if (func->funcid == write_char_id) {
+
+    } else {
+    }
+  }
+  // if (check_function(func) || check_arguments(func, args))
+  //   return make_const(pass_tdecl);
   return make_const(func->returntype);
 }
