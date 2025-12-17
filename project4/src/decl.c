@@ -73,9 +73,9 @@ void init_scope(void) {
   declare(charid, char_tdecl);
 
   /* built-in functions */
-  declare(write_int_id, make_func_builtin(write_int_id));
-  declare(write_char_id, make_func_builtin(write_char_id));
-  declare(write_string_id, make_func_builtin(write_string_id));
+  declare(write_int_id, make_func(int_tdecl, write_int_id));
+  declare(write_char_id, make_func(int_tdecl, write_char_id));
+  declare(write_string_id, make_func(int_tdecl, write_string_id));
 }
 
 void push_scope(void) {
@@ -218,22 +218,16 @@ decl_t *make_const(decl_t *tdecl) {
   return constdecl;
 }
 
-decl_t *make_func(decl_t *rettype) {
+decl_t *make_func(decl_t *rettype, id *idptr) {
   decl_t *funcdecl = (decl_t *)calloc(1, sizeof(decl_t));
   funcdecl->declclass = DECL_FUNC;
+  funcdecl->funcid = idptr;
   if (rettype == int_tdecl)
     funcdecl->returntype = int_tdecl_const;
   else if (rettype == char_tdecl)
     funcdecl->returntype = char_tdecl_const;
   else
     funcdecl->returntype = rettype;
-  return funcdecl;
-}
-
-decl_t *make_func_builtin(id *idptr) {
-  decl_t *funcdecl = (decl_t *)calloc(1, sizeof(decl_t));
-  funcdecl->declclass = DECL_FUNC_BUILTIN;
-  funcdecl->funcid = idptr;
   return funcdecl;
 }
 
@@ -290,13 +284,18 @@ decl_t *access_structp(decl_t *strpvar, id *fieldid) {
 }
 
 decl_t *access_function(decl_t *func, decl_t *args) {
-  if (func->declclass == DECL_FUNC_BUILTIN) {
-    if (func->funcid == write_int_id) {
+  if (!func->funcid) {
+    perror("funcid missing\n");
+    exit(1);
+  }
 
-    } else if (func->funcid == write_char_id) {
-
-    } else {
-    }
+  if (func->funcid == write_int_id) {
+    write_int();
+  } else if (func->funcid == write_char_id) {
+    write_char();
+  } else if (func->funcid == write_string_id) {
+    write_string();
+  } else {
   }
   // if (check_function(func) || check_arguments(func, args))
   //   return make_const(pass_tdecl);

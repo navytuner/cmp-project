@@ -103,7 +103,7 @@ func_decl
   : type_specifier ID '(' {
     gen_label($2->name, LABEL_PLAIN);
     curfunc = $2;
-    $<declptr>$ = make_func($1);
+    $<declptr>$ = make_func($1, $2);
     declare($2, $<declptr>$);
     push_scope();
     declare(returnid, make_var($1));
@@ -114,7 +114,7 @@ func_decl
   | type_specifier ID '(' { 
     gen_label($2->name, LABEL_PLAIN);
     curfunc = $2;
-    $<declptr>$ = make_func($1);
+    $<declptr>$ = make_func($1, $2);
     declare($2, $<declptr>$);
     push_scope(); 
     declare(returnid, make_var($1));
@@ -174,7 +174,7 @@ stmt_list
 stmt
   : expr ';'                                        {}
   | compound_stmt                                   {}
-  | RETURN expr ';'                                 { check_return($2); }
+  | RETURN { prepare_return(); } expr ';' { assign(); jump(curfunc->name, LABEL_FINAL, 0); }
   | ';'                                             {}
   | IF '(' expr ')' stmt %prec '('                  {}
   | IF '(' expr ')' stmt ELSE stmt                  {}

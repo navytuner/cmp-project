@@ -6,15 +6,15 @@
 #define MX 500
 extern FILE *yyout;
 
-int strnum;
+int str_offset;
 
 void init_gen(void) {
-  strnum = 0;
+  str_offset = 0;
   push_const_label("EXIT");
   push_reg("fp");
   push_reg("sp");
   pop_reg("fp");
-  jump("main", 0);
+  jump("main", LABEL_PLAIN, 0);
   gen_label("EXIT", LABEL_PLAIN);
   gen_exit();
 }
@@ -48,6 +48,14 @@ void func_epilogue(char *func_name) {
   gen_label(func_name, LABEL_END);
 }
 
+void prepare_return(void) {
+  push_reg("fp");
+  push_const_int(-1);
+  gen_add();
+  push_const_int(-1);
+  gen_add();
+}
+
 void gen_label(char *label, int flag) {
   char buf[MX];
   strncpy(buf, label, MX);
@@ -70,8 +78,11 @@ void gen_label(char *label, int flag) {
 
 void gen_string(char *str) {
   char buf[MX];
-  sprintf(buf, "str_%d. string \"%s\"", strnum++, str);
+  char label[MX];
+  sprintf(label, "str_%d", str_offset);
+  sprintf(buf, "str_%d. string \"%s\"\n", str_offset++, str);
   fwrite(buf, 1, strlen(buf), yyout);
+  push_const_label(label);
 }
 
 void gen_globlabel(void) {
@@ -212,16 +223,33 @@ void gen_less_equal(void) {
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void jump(char *label, int offset) {
-  char buf[MX];
-  if (label) {
-    if (offset != 0) {
-      sprintf(buf, "        jump %s %d\n", label, offset);
-    } else {
-      sprintf(buf, "        jump %s\n", label);
-    }
-  } else if (offset != 0) {
+void jump(char *label, int label_flag, int offset) {
+  char buf[2 * MX];
+
+  if (!label) {
     sprintf(buf, "        jump %d\n", offset);
+    fwrite(buf, 1, strlen(buf), yyout);
+    return;
+  }
+
+  // make label according to label_flag
+  char label_buf[MX];
+  strncpy(label_buf, label, MX);
+  switch (label_flag) {
+  case LABEL_START:
+    strcat(label_buf, "_start");
+    break;
+  case LABEL_FINAL:
+    strcat(label_buf, "_final");
+    break;
+  case LABEL_END:
+    strcat(label_buf, "_end");
+    break;
+  }
+  if (offset != 0) {
+    sprintf(buf, "        jump %s %d\n", label_buf, offset);
+  } else {
+    sprintf(buf, "        jump %s\n", label_buf);
   }
   fwrite(buf, 1, strlen(buf), yyout);
 }

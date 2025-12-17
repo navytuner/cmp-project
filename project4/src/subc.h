@@ -27,7 +27,6 @@
 #define DECL_FUNC 2
 #define DECL_TYPE 3
 #define DECL_NULL 4
-#define DECL_FUNC_BUILTIN 5
 
 /* TYPE CLASSS */
 #define TYPE_INT 1
@@ -112,6 +111,7 @@ char *get_filename();
 void init_gen(void);
 void load_var(id *idptr);
 void func_epilogue(char *func_name);
+void prepare_return(void);
 void gen_label(char *label, int flag);
 void gen_string(char *str);
 void gen_globlabel(void);
@@ -137,7 +137,7 @@ void gen_greater(void);
 void gen_greater_equal(void);
 void gen_less(void);
 void gen_less_equal(void);
-void jump(char *label, int offset);
+void jump(char *label, int label_flag, int offset);
 void branch(int cond, char *label, int offset);
 void gen_exit(void);
 void assign(void);
@@ -170,8 +170,7 @@ decl_t *lookup_cur(id *idptr); // find idptr at the current scope
 
 decl_t *make_var(decl_t *tdecl);
 decl_t *make_const(decl_t *tdecl);
-decl_t *make_func(decl_t *rettype);
-decl_t *make_func_builtin(id *idptr);
+decl_t *make_func(decl_t *rettype, id *idptr);
 decl_t *make_arr(int, decl_t *tdecl);
 decl_t *make_ptr(decl_t *target);
 decl_t *make_str(ste_t *ste);
