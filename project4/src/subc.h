@@ -38,6 +38,14 @@
 #define TYPE_PASS 7
 #define TYPE_NULL 8
 
+/* RELOP, EQUOP specifier */
+#define OP_EQUAL 0
+#define OP_NOT_EQUAL 1
+#define OP_GREATER 2
+#define OP_GREATER_EQUAL 3
+#define OP_LESS 4
+#define OP_LESS_EQUAL 5
+
 /* label mode */
 #define LABEL_PLAIN 0
 #define LABEL_START 1
@@ -73,6 +81,7 @@ typedef struct decl {
   id *funcid;              // FUNC: built-in function id
   struct ste *formals;     // FUNC: formal argument list
   struct decl *returntype; // FUNC: return TYPE decl
+  int num_args;
 
   int typeclass;           // TYPE: type class(INT, array, ptr)
   int isconst;             // TYPE: 1(came from CONST), 0(came from var/func)
@@ -99,9 +108,15 @@ extern decl_t *pass_tdecl;
 extern decl_t *null_tdecl;
 extern id *returnid;
 extern id *curfunc;
+extern id *write_int_id;
+extern id *write_char_id;
+extern id *write_string_id;
 extern int errflag;
 extern int glob_offset;
 extern int local_offset;
+extern int str_offset;
+extern int label_offset;
+extern int num_args;
 
 int get_lineno();
 char *get_filename();
@@ -110,6 +125,8 @@ char *get_filename();
 // generate codes
 void init_gen(void);
 void load_var(id *idptr);
+void func_prologue(decl_t *funcdecl);
+void func_call(decl_t *funcdecl);
 void func_epilogue(char *func_name);
 void prepare_return(void);
 void gen_label(char *label, int flag);
@@ -131,12 +148,14 @@ void gen_div(void);
 void gen_mod(void);
 void gen_and(void);
 void gen_or(void);
-void gen_equal(void);
-void gen_not_equal(void);
-void gen_greater(void);
-void gen_greater_equal(void);
-void gen_less(void);
-void gen_less_equal(void);
+void gen_equop(int op);
+void gen_relop(int op);
+// void gen_equal(void);
+// void gen_not_equal(void);
+// void gen_greater(void);
+// void gen_greater_equal(void);
+// void gen_less(void);
+// void gen_less_equal(void);
 void jump(char *label, int label_flag, int offset);
 void branch(int cond, char *label, int offset);
 void gen_exit(void);

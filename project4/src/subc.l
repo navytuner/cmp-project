@@ -50,8 +50,12 @@ special_char  \\[nt]
 "continue"                      { return CONTINUE; }
 "||"                            { return LOGICAL_OR; }
 "&&"                            { return LOGICAL_AND; }
-"<"|"<="|">"|">="               { yylval.stringval = strdup(yytext); return RELOP; }
-"=="|"!="                       { yylval.stringval = strdup(yytext); return EQUOP; }
+"<"                             { yylval.intval = OP_LESS; return RELOP; }
+"<="                            { yylval.intval = OP_LESS_EQUAL; return RELOP; }
+">"                             { yylval.intval = OP_GREATER; return RELOP; }
+">="                            { yylval.intval = OP_GREATER_EQUAL; return RELOP; }
+"=="                            { yylval.intval = OP_EQUAL; return EQUOP; }
+"!="                            { yylval.intval = OP_NOT_EQUAL; return EQUOP; }
 "++"                            { return INCOP; }
 "--"                            { return DECOP; }
 "->"                            { return STRUCTOP; }

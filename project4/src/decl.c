@@ -237,6 +237,7 @@ decl_t *make_arr(int len, decl_t *tdecl) {
   arrdecl->typeclass = TYPE_ARRAY;
   arrdecl->len_arr = len;
   arrdecl->elementvar = make_var(tdecl);
+  arrdecl->size = tdecl->size * len;
   return arrdecl;
 }
 
@@ -245,6 +246,7 @@ decl_t *make_ptr(decl_t *target) {
   ptrdecl->declclass = DECL_TYPE;
   ptrdecl->typeclass = TYPE_PTR;
   ptrdecl->ptrto = target;
+  ptrdecl->size = 1;
   return ptrdecl;
 }
 

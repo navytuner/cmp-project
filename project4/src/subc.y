@@ -32,11 +32,11 @@ void  reduce(char* s);
 %type<declptr>    type_specifier struct_specifier func_decl binary unary expr args
 %token<declptr>   TYPE
 %token            STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
-%token            LOGICAL_OR LOGICAL_AND RELOP EQUOP INCOP DECOP STRUCTOP
+%token            LOGICAL_OR LOGICAL_AND INCOP DECOP STRUCTOP
 %token<idptr>     ID
 %token<charval>   CHAR_CONST
 %token<stringval> STRING
-%token<intval>    INTEGER_CONST
+%token<intval>    INTEGER_CONST RELOP EQUOP
 
 /* Precedences and Associativities */
 %left ','
@@ -131,7 +131,9 @@ param_list
 
 param_decl
   : type_specifier ID { 
-    declare($2, make_var($1)); }
+    declare($2, make_var($1)); 
+    local_offset += $1->size;
+  }
   | type_specifier ID '[' INTEGER_CONST ']' { 
     declare($2, make_const(make_arr($4, $1)));
   }
@@ -205,16 +207,16 @@ expr
   ;
 
 binary
-  : binary RELOP binary { $$ = int_tdecl_const; }
-  | binary EQUOP binary { $$ = int_tdecl_const; }
-  | binary '+' binary { $$ = int_tdecl_const; } 
-  | binary '-' binary { $$ = int_tdecl_const; } 
-  | binary '*' binary { $$ = int_tdecl_const; } 
-  | binary '/' binary { $$ = int_tdecl_const; } 
-  | binary '%' binary { $$ = int_tdecl_const; } 
+  : binary RELOP binary { $$ = int_tdecl_const; gen_relop($2); }
+  | binary EQUOP binary { $$ = int_tdecl_const; gen_equop($2); }
+  | binary '+' binary { $$ = int_tdecl_const; gen_add(); } 
+  | binary '-' binary { $$ = int_tdecl_const; gen_sub(); } 
+  | binary '*' binary { $$ = int_tdecl_const; gen_mul(); } 
+  | binary '/' binary { $$ = int_tdecl_const; gen_div(); } 
+  | binary '%' binary { $$ = int_tdecl_const; gen_mod(); } 
   | unary %prec '=' { $$ = $1->type; fetch($1, 1); }
-  | binary LOGICAL_AND binary { $$ = int_tdecl_const; }
-  | binary LOGICAL_OR binary { $$ = int_tdecl_const; }
+  | binary LOGICAL_AND binary { $$ = int_tdecl_const; gen_and(); }
+  | binary LOGICAL_OR binary { $$ = int_tdecl_const; gen_or(); }
   ;
 
 unary
@@ -234,14 +236,14 @@ unary
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
-  | unary '(' args ')'    { $$ = access_function($1, $3); } 
-  | unary '(' ')'         { $$ = access_function($1, NULL); }
+  | unary '(' { func_prologue($1); } args ')' { $$ = access_function($1, $4); func_call($1); num_args = 0; } 
+  | unary '(' { func_prologue($1); } ')' { $$ = access_function($1, NULL); func_call($1); }
   | SYM_NULL              { $$ = make_const(make_ptr(null_tdecl)); }
   ;
 
 args
-  : expr          { $$ = make_var($1); }
-  | args ',' expr { $$ = make_arg($3, $1); }
+  : expr          { $$ = make_var($1); num_args = 1; }
+  | args ',' expr { $$ = make_arg($3, $1); num_args++; }
   ;
 
 %%

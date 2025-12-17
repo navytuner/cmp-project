@@ -4,12 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 #define MX 500
+#define LABEL_MAXLEN 300
 extern FILE *yyout;
 
 int str_offset;
+int label_offset;
+int num_args;
 
 void init_gen(void) {
   str_offset = 0;
+  label_offset = 0;
+  num_args = 0;
   push_const_label("EXIT");
   push_reg("fp");
   push_reg("sp");
@@ -34,6 +39,34 @@ void load_var(id *idptr) {
     push_const_int(decl->offset + 1);
     gen_add();
   }
+}
+
+void func_prologue(decl_t *funcdecl) {
+  id *idptr = funcdecl->funcid;
+  if (idptr == write_int_id || idptr == write_char_id ||
+      idptr == write_string_id)
+    return;
+  char label[LABEL_MAXLEN];
+  sprintf(label, "label_%d", label_offset);
+  shift_sp(1); // return value
+  push_const_label(label);
+  push_reg("fp");
+}
+
+void func_call(decl_t *funcdecl) {
+  id *idptr = funcdecl->funcid;
+  if (idptr == write_int_id || idptr == write_char_id ||
+      idptr == write_string_id)
+    return;
+  char label[LABEL_MAXLEN];
+  sprintf(label, "label_%d", label_offset);
+  push_reg("sp");
+  push_const_int(-num_args);
+  gen_add();
+  pop_reg("fp");
+  jump(funcdecl->funcid->name, LABEL_PLAIN, 0);
+  gen_label(label, LABEL_PLAIN);
+  label_offset++;
 }
 
 void func_epilogue(char *func_name) {
@@ -129,97 +162,89 @@ void shift_sp(int n) {
 
 void gen_negate(void) {
   char buf[MX];
-  strncpy(buf, "        negate\n", MX);
+  strcpy(buf, "        negate\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_not(void) {
   char buf[MX];
-  strncpy(buf, "        not\n", MX);
+  strcpy(buf, "        not\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_abs(void) {
   char buf[MX];
-  strncpy(buf, "        abs\n", MX);
+  strcpy(buf, "        abs\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_add(void) {
   char buf[MX];
-  strncpy(buf, "        add\n", MX);
+  strcpy(buf, "        add\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_sub(void) {
   char buf[MX];
-  strncpy(buf, "        sub\n", MX);
+  strcpy(buf, "        sub\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_mul(void) {
   char buf[MX];
-  strncpy(buf, "        mul\n", MX);
+  strcpy(buf, "        mul\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_div(void) {
   char buf[MX];
-  strncpy(buf, "        div\n", MX);
+  strcpy(buf, "        div\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_mod(void) {
   char buf[MX];
-  strncpy(buf, "        mod\n", MX);
+  strcpy(buf, "        mod\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_and(void) {
   char buf[MX];
-  strncpy(buf, "        and\n", MX);
+  strcpy(buf, "        and\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
 void gen_or(void) {
   char buf[MX];
-  strncpy(buf, "        or\n", MX);
+  strcpy(buf, "        or\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void gen_equal(void) {
+void gen_equop(int op) {
   char buf[MX];
-  strncpy(buf, "        equal\n", MX);
+  if (op == OP_EQUAL)
+    sprintf(buf, "        equal\n");
+  else
+    sprintf(buf, "        not_equal\n");
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void gen_not_equal(void) {
+void gen_relop(int op) {
   char buf[MX];
-  strncpy(buf, "        not_equal\n", MX);
-  fwrite(buf, 1, strlen(buf), yyout);
-}
-
-void gen_greater(void) {
-  char buf[MX];
-  strncpy(buf, "        greater\n", MX);
-  fwrite(buf, 1, strlen(buf), yyout);
-}
-
-void gen_greater_equal(void) {
-  char buf[MX];
-  strncpy(buf, "        greater_equal\n", MX);
-  fwrite(buf, 1, strlen(buf), yyout);
-}
-
-void gen_less(void) {
-  char buf[MX];
-  strncpy(buf, "        less\n", MX);
-  fwrite(buf, 1, strlen(buf), yyout);
-}
-
-void gen_less_equal(void) {
-  char buf[MX];
-  strncpy(buf, "        less_equal\n", MX);
+  switch (op) {
+  case OP_GREATER:
+    strcpy(buf, "        greater\n");
+    break;
+  case OP_GREATER_EQUAL:
+    strcpy(buf, "        greater_equal\n");
+    break;
+  case OP_LESS:
+    strcpy(buf, "        less\n");
+    break;
+  case OP_LESS_EQUAL:
+    strcpy(buf, "        less_equal\n");
+    break;
+  }
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
