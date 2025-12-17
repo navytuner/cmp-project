@@ -20,6 +20,7 @@
 /* SCOPE */
 #define SCOPE_INITSZ 256
 #define SCOPE_GLOB 1
+#define SCOPE_FUNC 2
 
 /* DECL CLASS*/
 #define DECL_VAR 0
@@ -130,6 +131,7 @@ void func_call(decl_t *funcdecl);
 void func_epilogue(char *func_name);
 void prepare_return(void);
 void gen_label(char *label, int flag);
+void make_label(void);
 void gen_string(char *str);
 void gen_globlabel(void);
 void push_const_int(int n);
@@ -150,14 +152,8 @@ void gen_and(void);
 void gen_or(void);
 void gen_equop(int op);
 void gen_relop(int op);
-// void gen_equal(void);
-// void gen_not_equal(void);
-// void gen_greater(void);
-// void gen_greater_equal(void);
-// void gen_less(void);
-// void gen_less_equal(void);
-void jump(char *label, int label_flag, int offset);
-void branch(int cond, char *label, int offset);
+void jump(char *label, int label_flag, int offset, int label_num);
+void branch(int cond, char *label, int offset, int label_num);
 void gen_exit(void);
 void assign(void);
 void fetch(decl_t *declptr, int cond);

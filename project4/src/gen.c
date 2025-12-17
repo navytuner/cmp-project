@@ -19,21 +19,22 @@ void init_gen(void) {
   push_reg("fp");
   push_reg("sp");
   pop_reg("fp");
-  jump("main", LABEL_PLAIN, 0);
+  jump("main", LABEL_PLAIN, 0, -1);
   gen_label("EXIT", LABEL_PLAIN);
   gen_exit();
 }
 
 void load_var(id *idptr) {
-  decl_t *decl = lookup_cur(idptr);
+  decl_t *decl = find_decl(scope[SCOPE_FUNC], idptr);
   char buf[MX];
 
   if (!decl) {
+    // global variable
     decl = find_decl(scope[SCOPE_GLOB], idptr);
     if (decl->glob)
       push_const_label_offset("Lglob", decl->offset);
   } else {
-    if (decl->declclass != DECL_VAR)
+    if (decl->declclass != DECL_VAR && decl->declclass != DECL_CONST)
       return;
     push_reg("fp");
     push_const_int(decl->offset + 1);
@@ -58,14 +59,12 @@ void func_call(decl_t *funcdecl) {
   if (idptr == write_int_id || idptr == write_char_id ||
       idptr == write_string_id)
     return;
-  char label[LABEL_MAXLEN];
-  sprintf(label, "label_%d", label_offset);
   push_reg("sp");
   push_const_int(-num_args);
   gen_add();
   pop_reg("fp");
-  jump(funcdecl->funcid->name, LABEL_PLAIN, 0);
-  gen_label(label, LABEL_PLAIN);
+  jump(funcdecl->funcid->name, LABEL_PLAIN, 0, -1);
+  make_label();
   label_offset++;
 }
 
@@ -107,6 +106,13 @@ void gen_label(char *label, int flag) {
     break;
   }
   fwrite(buf, 1, strlen(buf), yyout);
+}
+
+void make_label(void) {
+  char label[LABEL_MAXLEN];
+  sprintf(label, "label_%d:\n", label_offset);
+  fwrite(label, 1, strlen(label), yyout);
+  label_offset++;
 }
 
 void gen_string(char *str) {
@@ -248,11 +254,15 @@ void gen_relop(int op) {
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void jump(char *label, int label_flag, int offset) {
+void jump(char *label, int label_flag, int offset, int label_num) {
   char buf[2 * MX];
 
   if (!label) {
-    sprintf(buf, "        jump %d\n", offset);
+    if (label_num >= 0) {
+      sprintf(buf, "        jump label_%d\n", label_num);
+    } else {
+      sprintf(buf, "        jump %d\n", offset);
+    }
     fwrite(buf, 1, strlen(buf), yyout);
     return;
   }
@@ -279,7 +289,7 @@ void jump(char *label, int label_flag, int offset) {
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void branch(int cond, char *label, int offset) {
+void branch(int cond, char *label, int offset, int label_num) {
   char buf[MX];
   if (cond == TRUE) {
     if (label) {
@@ -287,16 +297,22 @@ void branch(int cond, char *label, int offset) {
         sprintf(buf, "        branch_true %s %d\n", label, offset);
       else
         sprintf(buf, "        branch_true %s\n", label);
-    } else if (offset != 0)
+    } else if (label_num > 0) {
+      sprintf(buf, "        branch_true label_%d\n", label_num);
+    } else {
       sprintf(buf, "        branch_true %d\n", offset);
+    }
   } else {
     if (label) {
       if (offset != 0)
         sprintf(buf, "        branch_false %s %d\n", label, offset);
       else
         sprintf(buf, "        branch_false %s\n", label);
-    } else if (offset != 0)
+    } else if (label_num > 0) {
+      sprintf(buf, "        branch_false label_%d\n", label_num);
+    } else {
       sprintf(buf, "        branch_false %d\n", offset);
+    }
   }
   fwrite(buf, 1, strlen(buf), yyout);
 }

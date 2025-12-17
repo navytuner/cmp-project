@@ -14,6 +14,7 @@ int   yylex();
 int   yyerror(char* s);
 char* yyget_text();
 void  reduce(char* s);
+int elseflag = 0;
 %}
 
 /* Bison declarations section */
@@ -176,15 +177,18 @@ stmt_list
 stmt
   : expr ';'                                        {}
   | compound_stmt                                   {}
-  | RETURN { prepare_return(); } expr ';' { assign(); jump(curfunc->name, LABEL_FINAL, 0); }
+  | RETURN { prepare_return(); } expr ';' { assign(); jump(curfunc->name, LABEL_FINAL, 0, -1); }
   | ';'                                             {}
-  | IF '(' expr ')' stmt %prec '('                  {}
-  | IF '(' expr ')' stmt ELSE stmt                  {}
+  | if_expr stmt %prec '(' { make_label(); }
+  | if_expr stmt ELSE { jump(NULL, LABEL_PLAIN, 0, label_offset+1); make_label(); } stmt { make_label(); }            
   | WHILE '(' expr ')' stmt                         {}
   | FOR '(' expr_e ';' expr_e ';' expr_e ')' stmt   {}
   | BREAK ';'                                       {}
   | CONTINUE ';'                                    {}
   ;
+
+if_expr
+  : IF { make_label(); } '(' expr ')' { branch(FALSE, NULL, 0, label_offset); }
 
 expr_e
   : expr    {}
