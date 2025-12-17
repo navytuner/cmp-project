@@ -39,10 +39,17 @@
 #define TYPE_PASS 7
 #define TYPE_NULL 8
 
+/* label mode */
 #define LABEL_PLAIN 0
 #define LABEL_START 1
 #define LABEL_FINAL 2
 #define LABEL_END 3
+
+/* inc/dec mode */
+#define INC_PRE 0
+#define INC_POST 1
+#define DEC_PRE 2
+#define DEC_POST 3
 
 typedef struct id {
   int tokenType;
@@ -78,10 +85,12 @@ typedef struct decl {
   int size;           // ALL: size in bytes
   int offset;         // VAR: offset from its base pointer
   struct ste **scope; // VAR: scope when VAR declared
+  int glob;           // isglob
   struct decl *next;  // for list_of_variables declarations
 } decl_t;
 
 extern ste_t **scope;
+extern int top;
 extern decl_t *int_tdecl;
 extern decl_t *int_tdecl_const;
 extern decl_t *char_tdecl;
@@ -93,6 +102,7 @@ extern id *returnid;
 extern id *curfunc;
 extern int errflag;
 extern int glob_offset;
+extern int local_offset;
 
 int get_lineno();
 char *get_filename();
@@ -100,36 +110,39 @@ char *get_filename();
 /* gen.c */
 // generate codes
 void init_gen(void);
+void load_var(id *idptr);
 void func_epilogue(char *func_name);
 void gen_label(char *label, int flag);
 void gen_string(char *str);
 void gen_globlabel(void);
 void push_const_int(int n);
-void push_const_label(char *label, int offset);
+void push_const_label(char *label);
+void push_const_label_offset(char *label, int offset);
 void push_reg(char *reg);
 void pop_reg(char *reg);
 void shift_sp(int n);
-void binary_negate(void);
-void binary_not(void);
-void binary_abs(void);
-void binary_add(void);
-void binary_sub(void);
-void binary_mul(void);
-void binary_div(void);
-void binary_mod(void);
-void binary_and(void);
-void binary_or(void);
-void binary_equal(void);
-void binary_not_equal(void);
-void binary_greater(void);
-void binary_greater_equal(void);
-void binary_less(void);
-void binary_less_equal(void);
+void gen_negate(void);
+void gen_not(void);
+void gen_abs(void);
+void gen_add(void);
+void gen_sub(void);
+void gen_mul(void);
+void gen_div(void);
+void gen_mod(void);
+void gen_and(void);
+void gen_or(void);
+void gen_equal(void);
+void gen_not_equal(void);
+void gen_greater(void);
+void gen_greater_equal(void);
+void gen_less(void);
+void gen_less_equal(void);
 void jump(char *label, int offset);
 void branch(int cond, char *label, int offset);
 void gen_exit(void);
 void assign(void);
-void fetch(void);
+void fetch(decl_t *declptr, int cond);
+void gen_incdec(int mode);
 void write_int(void);
 void write_char(void);
 void write_string(void);

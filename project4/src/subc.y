@@ -90,14 +90,11 @@ type_specifier
   ;
 
 struct_specifier
-  : STRUCT ID {
-    $<declptr>$ = make_str(NULL);
-  } '{' { 
+  : STRUCT ID '{' { 
     push_scope(); 
   } def_list '}' { 
-    $<declptr>3->fields = pop_scope(0);
-    declare_glob($2, $<declptr>3);
-    $$ = $<declptr>3;
+    $$ = make_str(pop_scope(0));
+    declare_glob($2, $$);
   }
   | STRUCT ID { $$ = lookup($2); }
   ;
@@ -148,6 +145,7 @@ def_list
 def
   : type_specifier ID ';' { 
     declare($2, make_var($1));
+    local_offset += $1->size;
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
     declare($2, make_const(make_arr($4, $1))); 
@@ -160,6 +158,8 @@ compound_stmt
 
 compound_func_stmt
   : '{' def_list {
+    if (local_offset > 0) shift_sp(local_offset);
+    local_offset = 0;
     gen_label(curfunc->name, LABEL_START);
   } stmt_list '}' {
     func_epilogue(curfunc->name);
@@ -190,10 +190,16 @@ expr_e
   ;
 
 expr
-  : unary '=' expr {
-    if ($3 == int_tdecl) $$ = int_tdecl_const;
-    else if ($3 == char_tdecl) $$ = char_tdecl_const;
-    else $$ = $3; 
+  : unary '=' {
+    push_reg("sp");
+    fetch(NULL, 0);
+  } expr {
+    if ($4 == int_tdecl) $$ = int_tdecl_const;
+    else if ($4 == char_tdecl) $$ = char_tdecl_const;
+    else $$ = $4; 
+    assign();
+    fetch(NULL, 0);
+    shift_sp(-1);
   }
   | binary { $$ = $1; }
   ;
@@ -206,25 +212,25 @@ binary
   | binary '*' binary { $$ = int_tdecl_const; } 
   | binary '/' binary { $$ = int_tdecl_const; } 
   | binary '%' binary { $$ = int_tdecl_const; } 
-  | unary %prec '=' { $$ = $1->type; }
+  | unary %prec '=' { $$ = $1->type; fetch($1, 1); }
   | binary LOGICAL_AND binary { $$ = int_tdecl_const; }
   | binary LOGICAL_OR binary { $$ = int_tdecl_const; }
   ;
 
 unary
   : '(' expr ')'          { $$ = ($2->isconst)? make_const($2) : make_var($2); }
-  | INTEGER_CONST         { $$ = make_const(int_tdecl_const); $$->intval = $1; }
+  | INTEGER_CONST         { $$ = make_const(int_tdecl_const); $$->intval = $1; push_const_int($1); }
   | CHAR_CONST            { $$ = make_const(char_tdecl_const); $$->charval = $1; }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; gen_string($1); } 
-  | ID                    { $$ = lookup($1); }
-  | '-' unary %prec '!'   { $$ = make_const($2->type); }
-  | '!' unary             { $$ = make_const($2->type); }
-  | unary INCOP %prec '.' { $$ = make_const($1->type); }
-  | unary DECOP %prec '.' { $$ = make_const($1->type); }
-  | INCOP unary           { $$ = make_const($2->type); }
-  | DECOP unary           { $$ = make_const($2->type); }
+  | ID                    { $$ = lookup($1); load_var($1); }
+  | '-' unary %prec '!'   { $$ = make_const($2->type); fetch($2, 1); gen_negate(); }
+  | '!' unary             { $$ = make_const($2->type); fetch($2, 1); gen_not(); }
+  | unary INCOP %prec '.' { $$ = make_const($1->type); gen_incdec(INC_POST); }
+  | unary DECOP %prec '.' { $$ = make_const($1->type); gen_incdec(DEC_POST); }
+  | INCOP unary           { $$ = make_const($2->type); gen_incdec(INC_PRE); }
+  | DECOP unary           { $$ = make_const($2->type); gen_incdec(DEC_PRE); }
   | '&' unary             { $$ = make_const(make_ptr($2->type)); }
-  | '*' unary %prec '!'   { $$ = make_var($2->type->ptrto); }
+  | '*' unary %prec '!'   { $$ = make_var($2->type->ptrto); fetch(NULL, 0); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }

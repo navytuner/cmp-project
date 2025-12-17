@@ -10,13 +10,30 @@ int strnum;
 
 void init_gen(void) {
   strnum = 0;
-  push_const_label("EXIT", 0);
+  push_const_label("EXIT");
   push_reg("fp");
   push_reg("sp");
   pop_reg("fp");
   jump("main", 0);
   gen_label("EXIT", LABEL_PLAIN);
   gen_exit();
+}
+
+void load_var(id *idptr) {
+  decl_t *decl = lookup_cur(idptr);
+  char buf[MX];
+
+  if (!decl) {
+    decl = find_decl(scope[SCOPE_GLOB], idptr);
+    if (decl->glob)
+      push_const_label_offset("Lglob", decl->offset);
+  } else {
+    if (decl->declclass != DECL_VAR)
+      return;
+    push_reg("fp");
+    push_const_int(decl->offset + 1);
+    gen_add();
+  }
 }
 
 void func_epilogue(char *func_name) {
@@ -69,12 +86,15 @@ void push_const_int(int n) {
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void push_const_label(char *label, int offset) {
+void push_const_label(char *label) {
   char buf[MX];
-  if (offset == 0)
-    sprintf(buf, "        push_const %s\n", label);
-  else
-    sprintf(buf, "        push_const %s+%d\n", label, offset);
+  sprintf(buf, "        push_const %s\n", label);
+  fwrite(buf, 1, strlen(buf), yyout);
+}
+
+void push_const_label_offset(char *label, int offset) {
+  char buf[MX];
+  sprintf(buf, "        push_const %s+%d\n", label, offset);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
@@ -96,97 +116,97 @@ void shift_sp(int n) {
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_negate(void) {
+void gen_negate(void) {
   char buf[MX];
   strncpy(buf, "        negate\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_not(void) {
+void gen_not(void) {
   char buf[MX];
   strncpy(buf, "        not\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_abs(void) {
+void gen_abs(void) {
   char buf[MX];
   strncpy(buf, "        abs\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_add(void) {
+void gen_add(void) {
   char buf[MX];
   strncpy(buf, "        add\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_sub(void) {
+void gen_sub(void) {
   char buf[MX];
   strncpy(buf, "        sub\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_mul(void) {
+void gen_mul(void) {
   char buf[MX];
   strncpy(buf, "        mul\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_div(void) {
+void gen_div(void) {
   char buf[MX];
   strncpy(buf, "        div\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_mod(void) {
+void gen_mod(void) {
   char buf[MX];
   strncpy(buf, "        mod\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_and(void) {
+void gen_and(void) {
   char buf[MX];
   strncpy(buf, "        and\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_or(void) {
+void gen_or(void) {
   char buf[MX];
   strncpy(buf, "        or\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_equal(void) {
+void gen_equal(void) {
   char buf[MX];
   strncpy(buf, "        equal\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_not_equal(void) {
+void gen_not_equal(void) {
   char buf[MX];
   strncpy(buf, "        not_equal\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_greater(void) {
+void gen_greater(void) {
   char buf[MX];
   strncpy(buf, "        greater\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_greater_equal(void) {
+void gen_greater_equal(void) {
   char buf[MX];
   strncpy(buf, "        greater_equal\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_less(void) {
+void gen_less(void) {
   char buf[MX];
   strncpy(buf, "        less\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void binary_less_equal(void) {
+void gen_less_equal(void) {
   char buf[MX];
   strncpy(buf, "        less_equal\n", MX);
   fwrite(buf, 1, strlen(buf), yyout);
@@ -238,9 +258,33 @@ void assign(void) {
   fwrite(buf, 1, strlen(buf), yyout);
 }
 
-void fetch(void) {
+void fetch(decl_t *declptr, int cond) {
+  if (cond && declptr->declclass != DECL_VAR)
+    return;
   char buf[MX] = "        fetch\n";
   fwrite(buf, 1, strlen(buf), yyout);
+}
+
+void gen_incdec(int mode) {
+  push_reg("sp");
+  fetch(NULL, 0);
+  push_reg("sp");
+  fetch(NULL, 0);
+  fetch(NULL, 0);
+  if (mode == INC_PRE || mode == INC_POST)
+    push_const_int(1);
+  else
+    push_const_int(-1);
+  gen_add();
+  assign();
+  fetch(NULL, 0);
+  if (mode == INC_POST) {
+    push_const_int(1);
+    gen_sub();
+  } else if (mode == DEC_POST) {
+    push_const_int(1);
+    gen_add();
+  }
 }
 
 void write_int(void) {
