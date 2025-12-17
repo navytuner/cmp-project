@@ -68,10 +68,10 @@ ext_def_list
 /* global variables, struct declaration, function declaration */
 ext_def
   : type_specifier ID ';' {
-    if (!check_redeclaration($2, TRUE)) declare($2, make_var($1));
+    declare($2, make_var($1));
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' {
-    if (!check_redeclaration($2, TRUE)) declare($2, make_const(make_arr($4, $1)));
+    declare($2, make_const(make_arr($4, $1)));
   }
   | struct_specifier ';'     {}
   | func_decl {
@@ -198,43 +198,16 @@ expr
   ;
 
 binary
-  : binary RELOP binary {
-    if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR))) $$ = pass_tdecl;
-    else $$ = int_tdecl_const;
-  }
-  | binary EQUOP binary {
-    if (check_comparable($1, $3, (TYPE_INT | TYPE_CHAR | TYPE_PTR))) $$ = pass_tdecl;
-    else $$ = int_tdecl_const;
-  }
-  | binary '+' binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = int_tdecl_const; 
-  }
-  | binary '-' binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = int_tdecl_const; 
-  } 
-  | binary '*' binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = int_tdecl_const; 
-  } 
-  | binary '/' binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = int_tdecl_const; 
-  } 
-  | binary '%' binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = int_tdecl_const; 
-  } 
+  : binary RELOP binary { $$ = int_tdecl_const; }
+  | binary EQUOP binary { $$ = int_tdecl_const; }
+  | binary '+' binary { $$ = int_tdecl_const; } 
+  | binary '-' binary { $$ = int_tdecl_const; } 
+  | binary '*' binary { $$ = int_tdecl_const; } 
+  | binary '/' binary { $$ = int_tdecl_const; } 
+  | binary '%' binary { $$ = int_tdecl_const; } 
   | unary %prec '=' { $$ = $1->type; }
-  | binary LOGICAL_AND binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = int_tdecl_const; 
-  }
-  | binary LOGICAL_OR binary { 
-    if (check_binary($1, $3, TYPE_INT)) $$ = pass_tdecl;
-    else $$ = int_tdecl_const; 
-  }
+  | binary LOGICAL_AND binary { $$ = int_tdecl_const; }
+  | binary LOGICAL_OR binary { $$ = int_tdecl_const; }
   ;
 
 unary

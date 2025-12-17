@@ -138,11 +138,18 @@ int main(int argc, char* argv[]) {
   init_scope();
 
   // I/O stream settings
+  if (argc >= 3) {
+    yyin = fopen(argv[1], "r");
+    yyout = fopen(argv[2], "w");
+    filename = strdup(argv[1]);
+  }
   if (argc >= 2) {
     yyin = fopen(argv[1], "r");
+    yyout = stdout;
     filename = strdup(argv[1]);
   } else {
     yyin = stdin;
+    yyout = stdout;
     filename = NULL;
   }
 
@@ -150,9 +157,14 @@ int main(int argc, char* argv[]) {
     printf("Can't open input stream!\n");
     exit(1);
   }
+  if (!yyout) {
+    printf("Can't open output stream!\n");
+    exit(1);
+  }
   
   yyparse();
   fclose(yyin);
+  fclose(yyout);
   finish_scope();
   
   return 0;

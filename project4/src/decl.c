@@ -19,6 +19,9 @@ id *charid;
 id *returnid;
 int errflag;
 
+// global offset counter
+int glob_offset;
+
 decl_t *init_tdecl(int typeclass) {
   decl_t *tdecl = (decl_t *)calloc(1, sizeof(decl_t));
   tdecl->typeclass = typeclass;
@@ -31,6 +34,7 @@ id *init_id(int toktype, char *name) {
 void init_scope(void) {
   /* reset error flag */
   errflag = 0;
+  glob_offset = 0;
 
   /* init id */
   intid = init_id(TYPE, "int");
@@ -169,6 +173,8 @@ decl_t *make_var(decl_t *tdecl) {
   decl_t *vardecl = (decl_t *)calloc(1, sizeof(decl_t));
   vardecl->declclass = DECL_VAR;
   vardecl->type = tdecl;
+  vardecl->offset = glob_offset++;
+  vardecl->size = 1;
   return vardecl;
 }
 

@@ -84,9 +84,41 @@ extern decl_t *pass_tdecl;
 extern decl_t *null_tdecl;
 extern id *returnid;
 extern int errflag;
+extern FILE *yyout;
 
 int get_lineno();
 char *get_filename();
+
+/* gen.c */
+// generate codes
+void push_const(int n);
+void push_reg(char *reg);
+void pop_reg(char *reg);
+void shift_sp(int n);
+void binary_negate(void);
+void binary_not(void);
+void binary_abs(void);
+void binary_add(void);
+void binary_sub(void);
+void binary_mul(void);
+void binary_div(void);
+void binary_mod(void);
+void binary_and(void);
+void binary_or(void);
+void binary_equal(void);
+void binary_not_equal(void);
+void binary_greater(void);
+void binary_greater_equal(void);
+void binary_less(void);
+void binary_less_equal(void);
+void jump(char *label, int offset);
+void branch(int cond, char *label, int offset);
+void gen_exit(void);
+void assign(void);
+void fetch(void);
+void write_int(void);
+void write_char(void);
+void write_string(void);
 
 /* hash.c */
 void init_hash(void);
