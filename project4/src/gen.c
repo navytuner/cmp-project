@@ -37,12 +37,24 @@ void init_gen(void) {
   gen_exit();
 }
 
-void str_assign_prologue(decl_t *strdecl) {
+void str_passarg(id *idptr) {
+  decl_t *strdecl = lookup(idptr)->type;
   for (int i = 0; i < strdecl->size; i++) {
-    push_reg("sp");
-    fetch(NULL, 0);
+    load_var(idptr);
     if (i > 0) {
-      push_const_int(1);
+      push_const_int(i);
+      gen_add();
+    }
+    fetch(NULL, 0);
+  }
+}
+
+void str_assign_prologue(id *idptr) {
+  decl_t *strdecl = lookup(idptr)->type;
+  for (int i = 0; i < strdecl->size; i++) {
+    load_var(idptr);
+    if (i > 0) {
+      push_const_int(i);
       gen_add();
     }
   }

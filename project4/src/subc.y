@@ -234,7 +234,7 @@ expr
   : unary '=' {
     if ($1->type->typeclass == TYPE_STRUCT){
       $<idptr>$ = cur_strid;
-      str_assign_prologue($1->type);
+      str_assign_prologue(cur_strid);
     }
     else {
       push_reg("sp");
@@ -294,8 +294,28 @@ unary
   ;
 
 args
-  : expr          { $$ = make_var($1); num_args = 1; }
-  | args ',' expr { $$ = make_arg($3, $1); num_args++; }
+  : expr { 
+    $$ = make_var($1); 
+    if ($1->typeclass == TYPE_STRUCT){
+      shift_sp(-1);
+      str_passarg(cur_strid);
+      num_args = $1->size; 
+    }
+    else {
+      num_args = 1; 
+    }
+  }
+  | args ',' expr { 
+    $$ = make_arg($3, $1); 
+    if ($3->typeclass == TYPE_STRUCT){
+      shift_sp(-1);
+      str_passarg(cur_strid);
+      num_args += $3->size;
+    }
+    else {
+      num_args++; 
+    }
+  }
   ;
 
 %%
