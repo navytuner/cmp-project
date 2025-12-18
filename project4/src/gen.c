@@ -5,20 +5,23 @@
 #include <string.h>
 #define MX 500
 #define LABEL_MAXLEN 300
+#define LABEL_STACK_CAP 1000
 extern FILE *yyout;
 
 int str_offset;
 int label_offset;
 int num_args;
-int cont_label;
-int break_label;
+int cont_label[LABEL_STACK_CAP];
+int break_label[LABEL_STACK_CAP];
+int cont_top;
+int break_top;
 
 void init_gen(void) {
   str_offset = 0;
   label_offset = 0;
   num_args = 0;
-  cont_label = 0;
-  break_label = 0;
+  cont_top = -1;
+  break_top = -1;
   shift_sp(1);
   push_const_label("EXIT");
   push_reg("fp");
@@ -29,6 +32,19 @@ void init_gen(void) {
   gen_exit();
 }
 
+void push_labels(int contlbl, int breaklbl) {
+  cont_label[++cont_top] = contlbl;
+  break_label[++break_top] = breaklbl;
+}
+
+int pop_cont(void) { return cont_label[cont_top--]; }
+
+int pop_break(void) { return break_label[break_top--]; }
+
+int top_cont(void) { return cont_label[cont_top]; }
+
+int top_break(void) { return break_label[break_top]; }
+
 void load_var(id *idptr) {
   decl_t *decl = lookup_funcscope(idptr);
   char buf[MX];
@@ -38,15 +54,17 @@ void load_var(id *idptr) {
     decl = find_decl(scope[SCOPE_GLOB], idptr);
     if (decl->glob)
       push_const_label_offset("Lglob", decl->offset);
+    // if (decl->declclass == DECL_VAR && decl->type->typeclass == TYPE_PTR)
+    //   fetch(NULL, 0);
   } else {
+    // local variable
     if (decl->declclass != DECL_VAR && decl->declclass != DECL_CONST)
       return;
     push_reg("fp");
     push_const_int(decl->offset + 1);
     gen_add();
-    if (decl->declclass == DECL_VAR && decl->type->typeclass == TYPE_PTR) {
-      fetch(NULL, 0);
-    }
+    // if (decl->declclass == DECL_VAR && decl->type->typeclass == TYPE_PTR)
+    //   fetch(NULL, 0);
   }
 }
 
@@ -310,7 +328,7 @@ void branch(int cond, char *label, int offset, int label_num) {
         sprintf(buf, "        branch_true %s %d\n", label, offset);
       else
         sprintf(buf, "        branch_true %s\n", label);
-    } else if (label_num > 0) {
+    } else if (label_num >= 0) {
       sprintf(buf, "        branch_true label_%d\n", label_num);
     } else {
       sprintf(buf, "        branch_true %d\n", offset);
@@ -321,7 +339,7 @@ void branch(int cond, char *label, int offset, int label_num) {
         sprintf(buf, "        branch_false %s %d\n", label, offset);
       else
         sprintf(buf, "        branch_false %s\n", label);
-    } else if (label_num > 0) {
+    } else if (label_num >= 0) {
       sprintf(buf, "        branch_false label_%d\n", label_num);
     } else {
       sprintf(buf, "        branch_false %d\n", offset);

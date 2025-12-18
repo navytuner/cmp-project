@@ -120,8 +120,6 @@ extern int param_offset;
 extern int str_offset;
 extern int label_offset;
 extern int num_args;
-extern int cont_label;
-extern int break_label;
 
 int get_lineno();
 char *get_filename();
@@ -129,6 +127,11 @@ char *get_filename();
 /* gen.c */
 // generate codes
 void init_gen(void);
+void push_labels(int contlbl, int breaklbl);
+int pop_cont(void);
+int pop_break(void);
+int top_cont(void);
+int top_break(void);
 void load_var(id *idptr);
 void func_prologue(decl_t *funcdecl);
 void func_call(decl_t *funcdecl);

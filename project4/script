@@ -1,0 +1,64 @@
+#!/bin/bash
+
+DIR1="open_test/basic"
+DIR2="open_test/advanced"
+DIR3="open_test/custom-test"
+OUT1="result/basic"
+OUT2="result/advanced"
+OUT3="result/custom-test"
+SUBC="src/subc"
+IN=("$DIR1" "$DIR2" "$DIR3")
+OUT=("$OUT1" "$OUT2" "$OUT3")
+
+# Create output directories if they don't exist
+mkdir -p "$OUT1"
+mkdir -p "$OUT2"
+mkdir -p "$OUT3"
+
+function make_result(){
+    # Check if subc executable exists
+    if [ ! -x "$SUBC" ]; then
+        echo "Error: $SUBC not found or not executable"
+        exit 1
+    fi
+
+    echo "Making Results..."
+    for i in "${!IN[@]}"; do
+        for file in "${IN[$i]}"/*.c; do
+            basename=$(basename "$file" .c)
+            echo "$basename"
+            "$SUBC" "$file" "${OUT[$i]}/$basename.s" 
+        done
+    done
+}
+
+function diff_result(){
+    echo "Diff..."
+    for i in "${!IN[@]}"; do
+        for file in "${IN[$i]}"/*.c; do
+            basename=$(basename "$file" .c)
+            echo "$basename"
+            colordiff "${IN[$i]}/$basename.s" "${OUT[$i]}/$basename.s"
+            echo ""
+        done
+    done
+}
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 {make|diff}"
+    exit 1
+fi
+
+case "$1" in
+    make)
+        make_result
+        ;;
+    diff)
+        diff_result
+        ;;
+    *)
+        echo "Error: Invalid option $1"
+        exit 1
+        ;;
+esac
+

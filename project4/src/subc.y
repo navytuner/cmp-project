@@ -189,22 +189,22 @@ stmt
   | if_expr stmt %prec '(' { make_label_offset($<intval>1); }
   | if_expr stmt ELSE { jump(NULL, LABEL_PLAIN, 0, $<intval>1+1); make_label_offset($<intval>1); } stmt { make_label_offset($<intval>1+1); }            
   | WHILE { 
-    cont_label = label_offset;
     $<intval>$ = label_offset;
+    push_labels(label_offset, label_offset+1);
     make_label(); 
   } '(' expr { 
-    break_label = label_offset;
     branch(FALSE, NULL, 0, label_offset++); 
   } ')' stmt { 
     jump(NULL, 0, 0, $<intval>2); 
     make_label_offset($<intval>2+1);
+    pop_cont();
+    pop_break();
   }
   | FOR '(' expr_e {
     $<intval>$ = label_offset;
+    push_labels(label_offset+1, label_offset+3);
     make_label(); 
   } ';' expr_e {
-    cont_label = label_offset;
-    break_label = $<intval>4 + 3;
     branch(FALSE, NULL, 0, $<intval>4 + 3); 
     jump(NULL, 0, 0, $<intval>4 + 2); 
     make_label(); 
@@ -215,9 +215,11 @@ stmt
   } stmt { 
     jump(NULL, 0, 0, $<intval>4+1); 
     make_label_offset($<intval>4+3);
+    pop_cont();
+    pop_break();
   }
-  | BREAK ';' { jump(NULL, 0, 0, break_label); }
-  | CONTINUE ';' { jump(NULL, 0, 0, cont_label); }
+  | BREAK ';' { jump(NULL, 0, 0, top_break()); pop_break(); pop_cont(); }
+  | CONTINUE ';' { jump(NULL, 0, 0, top_cont()); }
   ;
 
 if_expr
@@ -269,12 +271,12 @@ unary
   | INCOP unary           { $$ = make_const($2->type); gen_incdec(INC_PRE); }
   | DECOP unary           { $$ = make_const($2->type); gen_incdec(DEC_PRE); }
   | '&' unary             { $$ = make_const(make_ptr($2->type)); }
-  | '*' unary %prec '!'   { $$ = make_var($2->type->ptrto); $$->deref = 1; fetch(NULL, 0); }
+  | '*' unary %prec '!'   { $$ = make_var($2->type->ptrto); fetch(NULL, 0); $$->deref = $2->deref; }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
-  | unary '(' { func_prologue($1); } args ')' { $$ = access_function($1, $4); func_call($1); num_args = 0; } 
-  | unary '(' { func_prologue($1); } ')' { $$ = access_function($1, NULL); func_call($1); }
+  | unary '(' { func_prologue($1); } args ')' { $$ = access_function($1, $4); func_call($1); num_args = 0; $$->deref = 1; } 
+  | unary '(' { func_prologue($1); } ')' { $$ = access_function($1, NULL); func_call($1); $$->deref = 1; }
   | SYM_NULL              { $$ = make_const(make_ptr(null_tdecl)); }
   ;
 
