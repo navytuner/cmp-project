@@ -154,7 +154,8 @@ int main(int argc, char* argv[]) {
   }
 
   if(!yyin || !yyout) {
-    printf("Can't open input/output stream!\n");
+    if (!yyin) printf("Can't open input stream!\n");
+    else printf("Can't open output stream!\n");
     exit(1);
   }
 

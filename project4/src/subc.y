@@ -187,8 +187,18 @@ stmt
   | ';'                                             {}
   | if_expr stmt %prec '(' { make_label(); }
   | if_expr stmt ELSE { jump(NULL, LABEL_PLAIN, 0, label_offset+1); make_label(); } stmt { make_label(); }            
-  | WHILE '(' expr ')' stmt                         {}
-  | FOR '(' expr_e ';' expr_e ';' expr_e ')' stmt   {}
+  | WHILE { make_label(); } '(' expr { branch(FALSE, NULL, 0, label_offset); } ')' stmt { jump(NULL, 0, 0, label_offset-1); make_label(); }
+  | FOR '(' expr_e { make_label(); } ';' expr_e {
+    branch(FALSE, NULL, 0, label_offset+2); 
+    jump(NULL, 0, 0, label_offset+1); 
+    make_label(); 
+  } ';' expr_e ')' { 
+    jump(NULL, 0, 0, label_offset-2); 
+    make_label(); 
+  } stmt { 
+    jump(NULL, 0, 0, label_offset-2); 
+    make_label(); 
+  }
   | BREAK ';'                                       {}
   | CONTINUE ';'                                    {}
   ;
