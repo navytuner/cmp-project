@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     yyout = fopen(argv[2], "w");
     filename = strdup(argv[1]);
   }
-  if (argc >= 2) {
+  else if (argc >= 2) {
     yyin = fopen(argv[1], "r");
     yyout = stdout;
     filename = strdup(argv[1]);

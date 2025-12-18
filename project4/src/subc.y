@@ -96,6 +96,7 @@ struct_specifier
   } def_list '}' { 
     $$ = make_str(pop_scope(0));
     declare_glob($2, $$);
+    local_offset = 0;
   }
   | STRUCT ID { $$ = lookup($2); }
   ;
@@ -134,9 +135,12 @@ param_decl
   : type_specifier ID { 
     declare($2, make_var($1)); 
     local_offset += $1->size;
+    param_offset += $1->size;
   }
   | type_specifier ID '[' INTEGER_CONST ']' { 
     declare($2, make_const(make_arr($4, $1)));
+    local_offset += $4 * $1->size;
+    param_offset += $4 * $1->size;
   }
   ;
 
@@ -152,6 +156,7 @@ def
   }
   | type_specifier ID '[' INTEGER_CONST ']' ';' { 
     declare($2, make_const(make_arr($4, $1))); 
+    local_offset += $4 * $1->size;
   }
   ;
 
@@ -161,8 +166,9 @@ compound_stmt
 
 compound_func_stmt
   : '{' def_list {
-    if (local_offset > 0) shift_sp(local_offset);
+    if (local_offset > param_offset) shift_sp(local_offset-param_offset);
     local_offset = 0;
+    param_offset = 0;
     gen_label(curfunc->name, LABEL_START);
   } stmt_list '}' {
     func_epilogue(curfunc->name);

@@ -15,6 +15,7 @@ void init_gen(void) {
   str_offset = 0;
   label_offset = 0;
   num_args = 0;
+  shift_sp(1);
   push_const_label("EXIT");
   push_reg("fp");
   push_reg("sp");
@@ -25,7 +26,7 @@ void init_gen(void) {
 }
 
 void load_var(id *idptr) {
-  decl_t *decl = find_decl(scope[SCOPE_FUNC], idptr);
+  decl_t *decl = lookup_funcscope(idptr);
   char buf[MX];
 
   if (!decl) {

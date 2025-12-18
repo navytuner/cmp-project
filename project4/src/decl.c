@@ -27,6 +27,7 @@ int errflag;
 // global offset counter
 int glob_offset;
 int local_offset;
+int param_offset;
 
 decl_t *init_tdecl(int typeclass) {
   decl_t *tdecl = (decl_t *)calloc(1, sizeof(decl_t));
@@ -43,6 +44,7 @@ void init_scope(void) {
   errflag = 0;
   glob_offset = 0;
   local_offset = 0;
+  param_offset = 0;
 
   /* init id */
   intid = init_id(TYPE, "int");
@@ -147,18 +149,26 @@ ste_t *declare(id *idptr, decl_t *declptr) {
 
 ste_t *declare_glob(id *idptr, decl_t *declptr) {
   ste_t *newste = (ste_t *)calloc(1, sizeof(ste_t));
+  decl_t *tdecl = declptr->type;
   newste->id = idptr;
   newste->decl = declptr;
   declptr->glob = 1;
   if (declptr->declclass == DECL_VAR) {
     // variable
-    declptr->offset = glob_offset++;
+    declptr->offset = glob_offset;
+    if (tdecl->typeclass == TYPE_STRUCT) {
+      ste_t *cur = tdecl->fields;
+      while (cur) {
+        glob_offset += cur->decl->size;
+        cur = cur->prev;
+      }
+    } else {
+      glob_offset++;
+    }
   } else if (declptr->declclass == DECL_CONST) {
     // array
-    decl_t *arr_decl = declptr->type;
-
-  } else {
-    // struct
+    declptr->offset = glob_offset;
+    glob_offset += tdecl->size;
   }
 
   newste->prev = scope[SCOPE_GLOB];
@@ -196,12 +206,22 @@ decl_t *lookup_cur(id *idptr) {
   return NULL;
 }
 
+decl_t *lookup_funcscope(id *idptr) {
+  ste_t *cur = scope[SCOPE_FUNC];
+  while (cur && cur != scope[SCOPE_GLOB]) {
+    if (cur->id == idptr)
+      return cur->decl;
+    cur = cur->prev;
+  }
+  return NULL;
+}
+
 decl_t *make_var(decl_t *tdecl) {
   decl_t *vardecl = (decl_t *)calloc(1, sizeof(decl_t));
   vardecl->declclass = DECL_VAR;
   vardecl->type = tdecl;
   vardecl->offset = local_offset;
-  vardecl->size = 1;
+  vardecl->size = tdecl->size;
   return vardecl;
 }
 
@@ -215,6 +235,10 @@ decl_t *make_const(decl_t *tdecl) {
   constdecl->declclass = DECL_CONST;
   constdecl->type = tdecl;
   tdecl->isconst = 1;
+  if (tdecl->typeclass == TYPE_ARRAY) {
+    constdecl->size = tdecl->size;
+    constdecl->offset = local_offset;
+  }
   return constdecl;
 }
 
@@ -255,6 +279,14 @@ decl_t *make_str(ste_t *fields) {
   structdecl->declclass = DECL_TYPE;
   structdecl->typeclass = TYPE_STRUCT;
   structdecl->fields = fields;
+
+  int size = 0;
+  ste_t *ste = fields;
+  while (ste) {
+    size += ste->decl->size;
+    ste = ste->prev;
+  }
+  structdecl->size = size;
   return structdecl;
 }
 
@@ -266,23 +298,33 @@ decl_t *make_arg(decl_t *tdecl, decl_t *nextarg) {
 
 decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl) {
   decl_t *tdecl = arrdecl->type;
-  if (check_array(arrdecl) || check_subscript(idxdecl))
-    return make_const(pass_tdecl);
+  int size_elem = tdecl->size / tdecl->len_arr;
+  if (size_elem > 1) {
+    push_const_int(size_elem);
+    gen_mul();
+  }
+  gen_add();
   return tdecl->elementvar;
 }
 
 decl_t *access_struct(decl_t *strvar, id *fieldid) {
   decl_t *strdecl = strvar->type;
-  if (check_struct(strdecl) || check_member(strdecl, fieldid))
-    return make_const(pass_tdecl);
-  return find_decl(strdecl->fields, fieldid);
+  decl_t *decl = find_decl(strdecl->fields, fieldid);
+  if (decl->offset > 0) {
+    push_const_int(decl->offset);
+    gen_add();
+  }
+  return decl;
 }
 
 decl_t *access_structp(decl_t *strpvar, id *fieldid) {
   decl_t *strp = strpvar->type;
-  if (check_structp(strp) || check_member(strp->ptrto, fieldid))
-    return make_const(pass_tdecl);
-  return find_decl(strp->ptrto->fields, fieldid);
+  decl_t *decl = find_decl(strp->ptrto->fields, fieldid);
+  if (decl->offset > 0) {
+    push_const_int(decl->offset);
+    gen_add();
+  }
+  return decl;
 }
 
 decl_t *access_function(decl_t *func, decl_t *args) {

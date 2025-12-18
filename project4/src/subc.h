@@ -115,6 +115,7 @@ extern id *write_string_id;
 extern int errflag;
 extern int glob_offset;
 extern int local_offset;
+extern int param_offset;
 extern int str_offset;
 extern int label_offset;
 extern int num_args;
@@ -180,8 +181,9 @@ void insert_ste_list(ste_t *);                   // insert multiple stes
 ste_t *declare(id *, decl_t *);                  // make ste & insert it
 ste_t *declare_glob(id *idptr, decl_t *declptr); // declare as global
 decl_t *find_decl(ste_t *steptr, id *idptr);     // find id at the steptr scope
-decl_t *lookup(id *idptr);     // find idptr at the whole scope
-decl_t *lookup_cur(id *idptr); // find idptr at the current scope
+decl_t *lookup(id *idptr);           // find idptr at the whole scope
+decl_t *lookup_cur(id *idptr);       // find idptr at the current scope
+decl_t *lookup_funcscope(id *idptr); // find idptr at the function scope
 
 decl_t *make_var(decl_t *tdecl);
 decl_t *make_const(decl_t *tdecl);
