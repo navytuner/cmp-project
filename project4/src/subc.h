@@ -93,6 +93,7 @@ typedef struct decl {
 
   int size;           // ALL: size in bytes
   int offset;         // VAR: offset from its base pointer
+  int deref;          // VAR: dereferenced variable (*a)
   struct ste **scope; // VAR: scope when VAR declared
   int glob;           // isglob
   struct decl *next;  // for list_of_variables declarations
@@ -119,6 +120,8 @@ extern int param_offset;
 extern int str_offset;
 extern int label_offset;
 extern int num_args;
+extern int cont_label;
+extern int break_label;
 
 int get_lineno();
 char *get_filename();
@@ -133,6 +136,7 @@ void func_epilogue(char *func_name);
 void prepare_return(void);
 void gen_label(char *label, int flag);
 void make_label(void);
+void make_label_offset(int offset);
 void gen_string(char *str);
 void gen_globlabel(void);
 void push_const_int(int n);

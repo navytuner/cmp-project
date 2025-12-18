@@ -10,11 +10,15 @@ extern FILE *yyout;
 int str_offset;
 int label_offset;
 int num_args;
+int cont_label;
+int break_label;
 
 void init_gen(void) {
   str_offset = 0;
   label_offset = 0;
   num_args = 0;
+  cont_label = 0;
+  break_label = 0;
   shift_sp(1);
   push_const_label("EXIT");
   push_reg("fp");
@@ -40,6 +44,9 @@ void load_var(id *idptr) {
     push_reg("fp");
     push_const_int(decl->offset + 1);
     gen_add();
+    if (decl->declclass == DECL_VAR && decl->type->typeclass == TYPE_PTR) {
+      fetch(NULL, 0);
+    }
   }
 }
 
@@ -66,7 +73,6 @@ void func_call(decl_t *funcdecl) {
   pop_reg("fp");
   jump(funcdecl->funcid->name, LABEL_PLAIN, 0, -1);
   make_label();
-  label_offset++;
 }
 
 void func_epilogue(char *func_name) {
@@ -114,6 +120,12 @@ void make_label(void) {
   sprintf(label, "label_%d:\n", label_offset);
   fwrite(label, 1, strlen(label), yyout);
   label_offset++;
+}
+
+void make_label_offset(int offset) {
+  char label[LABEL_MAXLEN];
+  sprintf(label, "label_%d:\n", offset);
+  fwrite(label, 1, strlen(label), yyout);
 }
 
 void gen_string(char *str) {
@@ -329,8 +341,10 @@ void assign(void) {
 }
 
 void fetch(decl_t *declptr, int cond) {
-  if (cond && declptr->declclass != DECL_VAR)
-    return;
+  if (cond) {
+    if (declptr->declclass != DECL_VAR || declptr->deref)
+      return;
+  }
   char buf[MX] = "        fetch\n";
   fwrite(buf, 1, strlen(buf), yyout);
 }

@@ -31,6 +31,7 @@ int elseflag = 0;
 
 /* Tokens and Types */
 %type<declptr>    type_specifier struct_specifier func_decl binary unary expr args
+%type<intval>     if_expr
 %token<declptr>   TYPE
 %token            STRUCT SYM_NULL RETURN IF ELSE WHILE FOR BREAK CONTINUE 
 %token            LOGICAL_OR LOGICAL_AND INCOP DECOP STRUCTOP
@@ -185,26 +186,42 @@ stmt
   | compound_stmt                                   {}
   | RETURN { prepare_return(); } expr ';' { assign(); jump(curfunc->name, LABEL_FINAL, 0, -1); }
   | ';'                                             {}
-  | if_expr stmt %prec '(' { make_label(); }
-  | if_expr stmt ELSE { jump(NULL, LABEL_PLAIN, 0, label_offset+1); make_label(); } stmt { make_label(); }            
-  | WHILE { make_label(); } '(' expr { branch(FALSE, NULL, 0, label_offset); } ')' stmt { jump(NULL, 0, 0, label_offset-1); make_label(); }
-  | FOR '(' expr_e { make_label(); } ';' expr_e {
-    branch(FALSE, NULL, 0, label_offset+2); 
-    jump(NULL, 0, 0, label_offset+1); 
+  | if_expr stmt %prec '(' { make_label_offset($<intval>1); }
+  | if_expr stmt ELSE { jump(NULL, LABEL_PLAIN, 0, $<intval>1+1); make_label_offset($<intval>1); } stmt { make_label_offset($<intval>1+1); }            
+  | WHILE { 
+    cont_label = label_offset;
+    $<intval>$ = label_offset;
+    make_label(); 
+  } '(' expr { 
+    break_label = label_offset;
+    branch(FALSE, NULL, 0, label_offset++); 
+  } ')' stmt { 
+    jump(NULL, 0, 0, $<intval>2); 
+    make_label_offset($<intval>2+1);
+  }
+  | FOR '(' expr_e {
+    $<intval>$ = label_offset;
+    make_label(); 
+  } ';' expr_e {
+    cont_label = label_offset;
+    break_label = $<intval>4 + 3;
+    branch(FALSE, NULL, 0, $<intval>4 + 3); 
+    jump(NULL, 0, 0, $<intval>4 + 2); 
     make_label(); 
   } ';' expr_e ')' { 
-    jump(NULL, 0, 0, label_offset-2); 
+    jump(NULL, 0, 0, $<intval>4); 
     make_label(); 
+    label_offset++;
   } stmt { 
-    jump(NULL, 0, 0, label_offset-2); 
-    make_label(); 
+    jump(NULL, 0, 0, $<intval>4+1); 
+    make_label_offset($<intval>4+3);
   }
-  | BREAK ';'                                       {}
-  | CONTINUE ';'                                    {}
+  | BREAK ';' { jump(NULL, 0, 0, break_label); }
+  | CONTINUE ';' { jump(NULL, 0, 0, cont_label); }
   ;
 
 if_expr
-  : IF { make_label(); } '(' expr ')' { branch(FALSE, NULL, 0, label_offset); }
+  : IF '(' expr ')' { branch(FALSE, NULL, 0, label_offset); $$ = label_offset; label_offset += 2; }
 
 expr_e
   : expr    {}
@@ -242,7 +259,7 @@ binary
 unary
   : '(' expr ')'          { $$ = ($2->isconst)? make_const($2) : make_var($2); }
   | INTEGER_CONST         { $$ = make_const(int_tdecl_const); $$->intval = $1; push_const_int($1); }
-  | CHAR_CONST            { $$ = make_const(char_tdecl_const); $$->charval = $1; }
+  | CHAR_CONST            { $$ = make_const(char_tdecl_const); $$->charval = $1; push_const_int($1); }
   | STRING                { $$ = make_const(string_tdecl); $$->stringval = $1; gen_string($1); } 
   | ID                    { $$ = lookup($1); load_var($1); }
   | '-' unary %prec '!'   { $$ = make_const($2->type); fetch($2, 1); gen_negate(); }
@@ -252,7 +269,7 @@ unary
   | INCOP unary           { $$ = make_const($2->type); gen_incdec(INC_PRE); }
   | DECOP unary           { $$ = make_const($2->type); gen_incdec(DEC_PRE); }
   | '&' unary             { $$ = make_const(make_ptr($2->type)); }
-  | '*' unary %prec '!'   { $$ = make_var($2->type->ptrto); fetch(NULL, 0); }
+  | '*' unary %prec '!'   { $$ = make_var($2->type->ptrto); $$->deref = 1; fetch(NULL, 0); }
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
