@@ -16,12 +16,17 @@ int break_label[LABEL_STACK_CAP];
 int cont_top;
 int break_top;
 
+id *cur_strid;
+id *idstk[MX];
+int idstk_top;
+
 void init_gen(void) {
   str_offset = 0;
   label_offset = 0;
   num_args = 0;
   cont_top = -1;
   break_top = -1;
+  idstk_top = -1;
   shift_sp(1);
   push_const_label("EXIT");
   push_reg("fp");
@@ -31,6 +36,39 @@ void init_gen(void) {
   gen_label("EXIT", LABEL_PLAIN);
   gen_exit();
 }
+
+void str_assign_prologue(id *idptr, ste_t *field) {
+  if (!field)
+    return;
+
+  str_assign_prologue(idptr, field->prev);
+  load_var(idptr);
+  if (field->decl->offset > 0) {
+    push_const_int(field->decl->offset);
+    gen_add();
+  }
+}
+
+void str_assign(id *idptr, ste_t *field) {
+  while (field) {
+    load_var(idptr);
+    if (field->decl->offset > 0) {
+      push_const_int(field->decl->offset);
+      gen_add();
+    }
+    fetch(NULL, 0);
+    assign();
+    field = field->prev;
+  }
+}
+
+void push_idstk(id *idptr) { idstk[++idstk_top] = idptr; }
+
+id *op2_idstk(void) { return idstk[idstk_top]; }
+
+id *op1_idstk(void) { return idstk[idstk_top - 1]; }
+
+void pop_idstk(void) { idstk[idstk_top--] = NULL; }
 
 void push_labels(int contlbl, int breaklbl) {
   cont_label[++cont_top] = contlbl;
@@ -52,19 +90,20 @@ void load_var(id *idptr) {
   if (!decl) {
     // global variable
     decl = find_decl(scope[SCOPE_GLOB], idptr);
-    if (decl->glob)
-      push_const_label_offset("Lglob", decl->offset);
-    // if (decl->declclass == DECL_VAR && decl->type->typeclass == TYPE_PTR)
-    //   fetch(NULL, 0);
+    if (decl->declclass != DECL_VAR && decl->declclass != DECL_CONST)
+      return;
+    push_const_label_offset("Lglob", decl->offset);
+    if (decl->type && decl->type->typeclass == TYPE_STRUCT)
+      cur_strid = idptr;
   } else {
     // local variable
     if (decl->declclass != DECL_VAR && decl->declclass != DECL_CONST)
       return;
+    if (decl->type && decl->type->typeclass == TYPE_STRUCT)
+      cur_strid = idptr;
     push_reg("fp");
     push_const_int(decl->offset + 1);
     gen_add();
-    // if (decl->declclass == DECL_VAR && decl->type->typeclass == TYPE_PTR)
-    //   fetch(NULL, 0);
   }
 }
 

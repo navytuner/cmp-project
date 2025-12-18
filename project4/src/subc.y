@@ -232,15 +232,28 @@ expr_e
 
 expr
   : unary '=' {
-    push_reg("sp");
-    fetch(NULL, 0);
+    if ($1->type->typeclass == TYPE_STRUCT){
+      $<idptr>$ = cur_strid;
+      str_assign_prologue(cur_strid, lookup(cur_strid)->type->fields);
+    }
+    else {
+      push_reg("sp");
+      fetch(NULL, 0);
+    }
   } expr {
     if ($4 == int_tdecl) $$ = int_tdecl_const;
     else if ($4 == char_tdecl) $$ = char_tdecl_const;
     else $$ = $4; 
-    assign();
-    fetch(NULL, 0);
-    shift_sp(-1);
+    if ($1->type->typeclass == TYPE_STRUCT){
+      $<idptr>$ = cur_strid; 
+      shift_sp(-1);
+      str_assign(cur_strid, lookup(cur_strid)->type->fields);
+    }
+    else {
+      assign();
+      fetch(NULL, 0);
+      shift_sp(-1);
+    }
   }
   | binary { $$ = $1; }
   ;
@@ -277,7 +290,7 @@ unary
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
   | unary '(' { func_prologue($1); } args ')' { $$ = access_function($1, $4); func_call($1); num_args = 0; $$->deref = 1; } 
   | unary '(' { func_prologue($1); } ')' { $$ = access_function($1, NULL); func_call($1); $$->deref = 1; }
-  | SYM_NULL              { $$ = make_const(make_ptr(null_tdecl)); }
+  | SYM_NULL              { $$ = make_const(make_ptr(null_tdecl)); push_const_int(0); }
   ;
 
 args

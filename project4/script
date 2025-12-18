@@ -7,6 +7,7 @@ OUT1="result/basic"
 OUT2="result/advanced"
 OUT3="result/custom-test"
 SUBC="src/subc"
+SIM="simulator/sim"
 IN=("$DIR1" "$DIR2" "$DIR3")
 OUT=("$OUT1" "$OUT2" "$OUT3")
 
@@ -44,8 +45,20 @@ function diff_result(){
     done
 }
 
+function run(){
+    echo "Run Simulation..."
+    for i in "${!IN[@]}"; do
+        for file in "${IN[$i]}"/*.c; do
+            basename=$(basename "$file" .c)
+            echo "$basename"
+            "$SIM" "${OUT[$i]}"/"$basename".s
+            echo ""
+        done
+    done
+}
+
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 {make|diff}"
+    echo "Usage: $0 {make|diff|sim}"
     exit 1
 fi
 
@@ -55,6 +68,9 @@ case "$1" in
         ;;
     diff)
         diff_result
+        ;;
+    sim)
+        run
         ;;
     *)
         echo "Error: Invalid option $1"

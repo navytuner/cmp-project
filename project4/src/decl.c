@@ -341,7 +341,5 @@ decl_t *access_function(decl_t *func, decl_t *args) {
     write_string();
   } else {
   }
-  // if (check_function(func) || check_arguments(func, args))
-  //   return make_const(pass_tdecl);
   return make_const(func->returntype);
 }

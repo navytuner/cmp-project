@@ -120,6 +120,7 @@ extern int param_offset;
 extern int str_offset;
 extern int label_offset;
 extern int num_args;
+extern id *cur_strid;
 
 int get_lineno();
 char *get_filename();
@@ -127,6 +128,13 @@ char *get_filename();
 /* gen.c */
 // generate codes
 void init_gen(void);
+void str_assign_prologue(id *idptr, ste_t *field);
+void str_assign(id *idptr, ste_t *field);
+void push_idstk(id *idptr);
+id *op2_idstk(void);
+id *op1_idstk(void);
+void pop_idstk(void);
+void assign_struct(ste_t *tdecl1, ste_t *tdecl2);
 void push_labels(int contlbl, int breaklbl);
 int pop_cont(void);
 int pop_break(void);
