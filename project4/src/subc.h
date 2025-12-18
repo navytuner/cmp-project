@@ -128,8 +128,8 @@ char *get_filename();
 /* gen.c */
 // generate codes
 void init_gen(void);
-void str_assign_prologue(id *idptr, ste_t *field);
-void str_assign(id *idptr, ste_t *field);
+void str_assign_prologue(decl_t *strdecl);
+void str_assign(id *idptr);
 void push_idstk(id *idptr);
 id *op2_idstk(void);
 id *op1_idstk(void);

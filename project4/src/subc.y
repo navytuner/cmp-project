@@ -234,7 +234,7 @@ expr
   : unary '=' {
     if ($1->type->typeclass == TYPE_STRUCT){
       $<idptr>$ = cur_strid;
-      str_assign_prologue(cur_strid, lookup(cur_strid)->type->fields);
+      str_assign_prologue($1->type);
     }
     else {
       push_reg("sp");
@@ -247,7 +247,7 @@ expr
     if ($1->type->typeclass == TYPE_STRUCT){
       $<idptr>$ = cur_strid; 
       shift_sp(-1);
-      str_assign(cur_strid, lookup(cur_strid)->type->fields);
+      str_assign(cur_strid);
     }
     else {
       assign();

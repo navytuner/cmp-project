@@ -17,8 +17,8 @@ int cont_top;
 int break_top;
 
 id *cur_strid;
-id *idstk[MX];
-int idstk_top;
+// id *idstk[MX];
+// int idstk_top;
 
 void init_gen(void) {
   str_offset = 0;
@@ -26,7 +26,7 @@ void init_gen(void) {
   num_args = 0;
   cont_top = -1;
   break_top = -1;
-  idstk_top = -1;
+  // idstk_top = -1;
   shift_sp(1);
   push_const_label("EXIT");
   push_reg("fp");
@@ -37,38 +37,37 @@ void init_gen(void) {
   gen_exit();
 }
 
-void str_assign_prologue(id *idptr, ste_t *field) {
-  if (!field)
-    return;
-
-  str_assign_prologue(idptr, field->prev);
-  load_var(idptr);
-  if (field->decl->offset > 0) {
-    push_const_int(field->decl->offset);
-    gen_add();
+void str_assign_prologue(decl_t *strdecl) {
+  for (int i = 0; i < strdecl->size; i++) {
+    push_reg("sp");
+    fetch(NULL, 0);
+    if (i > 0) {
+      push_const_int(1);
+      gen_add();
+    }
   }
 }
 
-void str_assign(id *idptr, ste_t *field) {
-  while (field) {
+void str_assign(id *idptr) {
+  decl_t *strdecl = lookup(idptr);
+  for (int i = strdecl->size - 1; i >= 0; i--) {
     load_var(idptr);
-    if (field->decl->offset > 0) {
-      push_const_int(field->decl->offset);
+    if (i > 0) {
+      push_const_int(i);
       gen_add();
     }
     fetch(NULL, 0);
     assign();
-    field = field->prev;
   }
 }
 
-void push_idstk(id *idptr) { idstk[++idstk_top] = idptr; }
+// void push_idstk(id *idptr) { idstk[++idstk_top] = idptr; }
 
-id *op2_idstk(void) { return idstk[idstk_top]; }
+// id *op2_idstk(void) { return idstk[idstk_top]; }
 
-id *op1_idstk(void) { return idstk[idstk_top - 1]; }
+// id *op1_idstk(void) { return idstk[idstk_top - 1]; }
 
-void pop_idstk(void) { idstk[idstk_top--] = NULL; }
+// void pop_idstk(void) { idstk[idstk_top--] = NULL; }
 
 void push_labels(int contlbl, int breaklbl) {
   cont_label[++cont_top] = contlbl;
