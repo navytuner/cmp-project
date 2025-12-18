@@ -1,0 +1,39 @@
+#!/bin/bash
+
+DIR1="open_test/basic"
+DIR2="open_test/advanced"
+OUT1="result/basic"
+OUT2="result/advanced"
+SUBC="src/subc"
+
+# Create output directories if they don't exist
+mkdir -p "$OUT1"
+mkdir -p "$OUT2"
+
+# Check if subc executable exists
+if [ ! -x "$SUBC" ]; then
+    echo "Error: $SUBC not found or not executable"
+    exit 1
+fi
+
+# Process basic test files
+echo "Processing basic tests..."
+for file in "$DIR1"/*.c; do
+    if [ -f "$file" ]; then
+        echo "Processing: $file"
+        basename=$(basename "$file" .c)
+        "$SUBC" "$file" "$OUT1/${basename}.s" 2>&1
+    fi
+done
+
+# Process advanced test files
+echo "Processing advanced tests..."
+for file in "$DIR2"/*.c; do
+    if [ -f "$file" ]; then
+        echo "Processing: $file"
+        basename=$(basename "$file" .c)
+        "$SUBC" "$file" "$OUT2/${basename}.s" 2>&1
+    fi
+done
+
+echo "Done. Results saved in $OUT1 and $OUT2"
