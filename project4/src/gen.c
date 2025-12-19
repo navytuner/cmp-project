@@ -96,6 +96,7 @@ void str_assign_prologue(id *idptr) {
 
 void str_assign(id *idptr) {
   decl_t *strdecl = lookup(idptr);
+  shift_sp(-1);
   for (int i = strdecl->size - 1; i >= 0; i--) {
     load_var(idptr);
     if (i > 0) {
