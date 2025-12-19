@@ -320,6 +320,7 @@ decl_t *access_struct(decl_t *strvar, id *fieldid) {
 decl_t *access_structp(decl_t *strpvar, id *fieldid) {
   decl_t *strp = strpvar->type;
   decl_t *decl = find_decl(strp->ptrto->fields, fieldid);
+  fetch(NULL, 0);
   if (decl->offset > 0) {
     push_const_int(decl->offset);
     gen_add();

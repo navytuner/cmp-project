@@ -124,6 +124,7 @@ func_decl
   } param_list ')' { 
     $<declptr>4->formals = pop_scope(0);
     $$ = $<declptr>4;
+    update_func_argsize($$);
   }
   ;
 
@@ -222,7 +223,7 @@ stmt
     pop_cont();
     pop_break();
   }
-  | BREAK ';' { jump(NULL, 0, 0, top_break()); pop_break(); pop_cont(); }
+  | BREAK ';' { jump(NULL, 0, 0, top_break()); }
   | CONTINUE ';' { jump(NULL, 0, 0, top_cont()); }
   ;
 
@@ -289,8 +290,32 @@ unary
   | unary '[' expr ']'    { $$ = access_arr($1, $3); }
   | unary '.' ID          { $$ = access_struct($1, $3); }
   | unary STRUCTOP ID     { $$ = access_structp($1, $3); }
-  | unary '(' { func_prologue($1); } args ')' { $$ = access_function($1, $4); func_call($1); num_args = 0; $$->deref = 1; } 
-  | unary '(' { func_prologue($1); } ')' { $$ = access_function($1, NULL); func_call($1); $$->deref = 1; }
+  | unary '(' { 
+    func_prologue($1); 
+    $<intval>$ = label_offset; 
+    if ($1->funcid != write_int_id && $1->funcid != write_char_id&& 
+      $1->funcid != write_string_id) label_offset++;
+  } args ')' { 
+    $$ = access_function($1, $4); 
+    func_call($1); 
+    if ($1->funcid != write_int_id && $1->funcid != write_char_id&& 
+      $1->funcid != write_string_id)
+    make_label_offset($<intval>3);
+    $$->deref = 1; 
+  } 
+  | unary '(' { 
+    func_prologue($1); 
+    $<intval>$ = label_offset;
+    if ($1->funcid != write_int_id && $1->funcid != write_char_id&& 
+      $1->funcid != write_string_id) label_offset++; 
+  } ')' { 
+    $$ = access_function($1, NULL); 
+    func_call($1); 
+    if ($1->funcid != write_int_id && $1->funcid != write_char_id&& 
+      $1->funcid != write_string_id)
+    make_label_offset($<intval>3);
+    $$->deref = 1; 
+  }
   | SYM_NULL              { $$ = make_const(make_ptr(null_tdecl)); push_const_int(0); }
   ;
 
@@ -300,10 +325,6 @@ args
     if ($1->typeclass == TYPE_STRUCT){
       shift_sp(-1);
       str_passarg(cur_strid);
-      num_args = $1->size; 
-    }
-    else {
-      num_args = 1; 
     }
   }
   | args ',' expr { 
@@ -311,10 +332,6 @@ args
     if ($3->typeclass == TYPE_STRUCT){
       shift_sp(-1);
       str_passarg(cur_strid);
-      num_args += $3->size;
-    }
-    else {
-      num_args++; 
     }
   }
   ;

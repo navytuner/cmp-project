@@ -3,14 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define MX 500
-#define LABEL_MAXLEN 300
+#define MX 1000
+#define LABEL_MAXLEN 500
 #define LABEL_STACK_CAP 1000
 extern FILE *yyout;
 
 int str_offset;
 int label_offset;
-int num_args;
 int cont_label[LABEL_STACK_CAP];
 int break_label[LABEL_STACK_CAP];
 int cont_top;
@@ -18,13 +17,10 @@ int break_top;
 int func_flag;
 
 id *cur_strid;
-// id *idstk[MX];
-// int idstk_top;
 
 void init_gen(void) {
   str_offset = 0;
   label_offset = 0;
-  num_args = 0;
   cont_top = -1;
   break_top = -1;
   func_flag = 0;
@@ -113,14 +109,6 @@ void str_assign(decl_t *strdecl) {
   }
 }
 
-// void push_idstk(id *idptr) { idstk[++idstk_top] = idptr; }
-
-// id *op2_idstk(void) { return idstk[idstk_top]; }
-
-// id *op1_idstk(void) { return idstk[idstk_top - 1]; }
-
-// void pop_idstk(void) { idstk[idstk_top--] = NULL; }
-
 void push_labels(int contlbl, int breaklbl) {
   cont_label[++cont_top] = contlbl;
   break_label[++break_top] = breaklbl;
@@ -164,6 +152,15 @@ void load_var(id *idptr) {
   }
 }
 
+void update_func_argsize(decl_t *funcdecl) {
+  ste_t *ste = funcdecl->formals;
+  funcdecl->size = 0;
+  while (ste && ste->id != returnid) {
+    funcdecl->size += ste->decl->size;
+    ste = ste->prev;
+  }
+}
+
 void func_prologue(decl_t *funcdecl) {
   id *idptr = funcdecl->funcid;
   if (idptr == write_int_id || idptr == write_char_id ||
@@ -184,11 +181,10 @@ void func_call(decl_t *funcdecl) {
       idptr == write_string_id)
     return;
   push_reg("sp");
-  push_const_int(-num_args);
+  push_const_int(-funcdecl->size);
   gen_add();
   pop_reg("fp");
   jump(funcdecl->funcid->name, LABEL_PLAIN, 0, -1);
-  make_label();
 }
 
 void func_epilogue(char *func_name) {
