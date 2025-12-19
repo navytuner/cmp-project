@@ -254,7 +254,6 @@ expr
     } 
     else assign();
     fetch(NULL, 0);
-    shift_sp(-1);
     func_flag = 0;
   }
   | binary { $$ = $1; }
