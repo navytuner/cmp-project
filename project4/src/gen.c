@@ -15,6 +15,7 @@ int cont_label[LABEL_STACK_CAP];
 int break_label[LABEL_STACK_CAP];
 int cont_top;
 int break_top;
+int func_flag;
 
 id *cur_strid;
 // id *idstk[MX];
@@ -26,6 +27,7 @@ void init_gen(void) {
   num_args = 0;
   cont_top = -1;
   break_top = -1;
+  func_flag = 0;
   // idstk_top = -1;
   shift_sp(1);
   push_const_label("EXIT");
@@ -35,6 +37,38 @@ void init_gen(void) {
   jump("main", LABEL_PLAIN, 0, -1);
   gen_label("EXIT", LABEL_PLAIN);
   gen_exit();
+}
+
+void str_ret(id *idptr) {
+  decl_t *strdecl = lookup_funcscope(idptr);
+  if (strdecl) {
+    // local variable
+    for (int i = 0; i < strdecl->size; i++) {
+      push_reg("fp");
+      push_const_int(-3 - i);
+      gen_add();
+      fetch(NULL, 0);
+      push_reg("fp");
+      push_const_int(1 + strdecl->offset + strdecl->size - 1 - i);
+      gen_add();
+      fetch(NULL, 0);
+      assign();
+    }
+  } else {
+    // global variable
+    strdecl = find_decl(scope[SCOPE_GLOB], idptr);
+    for (int i = 0; i < strdecl->size; i++) {
+      push_reg("fp");
+      push_const_int(-3 - i);
+      gen_add();
+      fetch(NULL, 0);
+      push_const_label_offset("Lglob", strdecl->offset);
+      push_const_int(strdecl->size - 1 - i);
+      gen_add();
+      fetch(NULL, 0);
+      assign();
+    }
+  }
 }
 
 void str_passarg(id *idptr) {
@@ -132,6 +166,7 @@ void func_prologue(decl_t *funcdecl) {
 
 void func_call(decl_t *funcdecl) {
   id *idptr = funcdecl->funcid;
+  func_flag = 1;
   if (idptr == write_int_id || idptr == write_char_id ||
       idptr == write_string_id)
     return;

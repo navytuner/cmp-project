@@ -184,7 +184,11 @@ stmt_list
 stmt
   : expr ';'                                        {}
   | compound_stmt                                   {}
-  | RETURN { prepare_return(); } expr ';' { assign(); jump(curfunc->name, LABEL_FINAL, 0, -1); }
+  | RETURN { prepare_return(); } expr ';' { 
+    assign();
+    if ($3->typeclass == TYPE_STRUCT) str_ret(cur_strid);
+    jump(curfunc->name, LABEL_FINAL, 0, -1);
+  }
   | ';'                                             {}
   | if_expr stmt %prec '(' { make_label_offset($<intval>1); }
   | if_expr stmt ELSE { jump(NULL, LABEL_PLAIN, 0, $<intval>1+1); make_label_offset($<intval>1); } stmt { make_label_offset($<intval>1+1); }            
@@ -233,7 +237,6 @@ expr_e
 expr
   : unary '=' {
     if ($1->type->typeclass == TYPE_STRUCT){
-      $<idptr>$ = cur_strid;
       str_assign_prologue(cur_strid);
     }
     else {
@@ -244,16 +247,13 @@ expr
     if ($4 == int_tdecl) $$ = int_tdecl_const;
     else if ($4 == char_tdecl) $$ = char_tdecl_const;
     else $$ = $4; 
+
     if ($1->type->typeclass == TYPE_STRUCT){
-      $<idptr>$ = cur_strid; 
-      shift_sp(-1);
-      str_assign(cur_strid);
-    }
-    else {
-      assign();
-      fetch(NULL, 0);
-      shift_sp(-1);
-    }
+      if (!func_flag) str_assign(cur_strid);
+    } 
+    else assign();
+    fetch(NULL, 0);
+    shift_sp(-1);
   }
   | binary { $$ = $1; }
   ;

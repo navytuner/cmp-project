@@ -121,6 +121,7 @@ extern int str_offset;
 extern int label_offset;
 extern int num_args;
 extern id *cur_strid;
+extern int func_flag;
 
 int get_lineno();
 char *get_filename();
@@ -128,6 +129,7 @@ char *get_filename();
 /* gen.c */
 // generate codes
 void init_gen(void);
+void str_ret(id *idptr);
 void str_passarg(id *idptr);
 void str_assign_prologue(id *idptr);
 void str_assign(id *idptr);
@@ -214,51 +216,5 @@ decl_t *access_arr(decl_t *arrdecl, decl_t *idxdecl);
 decl_t *access_struct(decl_t *strpvar, id *fieldid);
 decl_t *access_structp(decl_t *strvar, id *fieldid);
 decl_t *access_function(decl_t *func, decl_t *args);
-
-/* error.c */
-// check errors
-int ispass(decl_t *decl);
-int issametype(decl_t *tdecl1, decl_t *tdecl2);
-int check_undeclared(id *idptr);
-int check_redeclaration(id *idptr, int isglob);
-int check_assignable(decl_t *decl);
-int check_incompatible(decl_t *lhs, decl_t *rhs);
-int check_null(decl_t *lhs, decl_t *rhs);
-int check_binary(decl_t *op1, decl_t *op2, int tflag);
-int check_unary(decl_t *decl, int tflag);
-int check_comparable(decl_t *op1, decl_t *op2, int tflag);
-int check_indirection(decl_t *op);
-int check_addressof(decl_t *op);
-int check_struct(decl_t *strdecl);
-int check_structp(decl_t *strdecl);
-int check_member(decl_t *strdecl, id *idptr);
-int check_array(decl_t *arrdecl);
-int check_subscript(decl_t *idxdecl);
-int check_incomplete(id *strid);
-int check_return(decl_t *tdecl);
-int check_function(decl_t *decl);
-int check_arguments(decl_t *func, decl_t *args);
-
-// print error message
-void error_preamble(void);
-void error_undeclared(void);
-void error_redeclaration(void);
-void error_assignable(void);
-void error_incompatible(void);
-void error_null(void);
-void error_binary(void);
-void error_unary(void);
-void error_comparable(void);
-void error_indirection(void);
-void error_addressof(void);
-void error_struct(void);
-void error_structp(void);
-void error_member(void);
-void error_array(void);
-void error_subscript(void);
-void error_incomplete(void);
-void error_return(void);
-void error_function(void);
-void error_arguments(void);
 
 #endif
