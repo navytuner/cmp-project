@@ -12,3 +12,5 @@ lex.yy.c
 subc
 *.o
 .gdb_history
+project4/result
+*tab*
