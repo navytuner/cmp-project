@@ -87,7 +87,7 @@ special_char  \\[nt]
 
   /* Operators */
 ","                             { return ','; }
-";"                             { return yytext[0]; func_flag = 0; }
+";"                             { return yytext[0]; }
 "%"                             { return '%'; }
 "+"                             { return '+'; }
 "-"                             { return '-'; }

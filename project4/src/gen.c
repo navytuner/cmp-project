@@ -83,24 +83,29 @@ void str_passarg(id *idptr) {
   }
 }
 
-void str_assign_prologue(id *idptr) {
-  decl_t *strdecl = lookup(idptr)->type;
+void str_assign_prologue(decl_t *strdecl) {
   for (int i = 0; i < strdecl->size; i++) {
-    load_var(idptr);
+    push_reg("sp");
+    fetch(NULL, 0);
     if (i > 0) {
-      push_const_int(i);
+      push_const_int(1);
       gen_add();
     }
   }
 }
 
-void str_assign(id *idptr) {
-  decl_t *strdecl = lookup(idptr);
-  shift_sp(-1);
-  for (int i = strdecl->size - 1; i >= 0; i--) {
-    load_var(idptr);
-    if (i > 0) {
-      push_const_int(i);
+void str_assign(decl_t *strdecl) {
+  for (int i = 0; i < strdecl->size; i++) {
+    push_reg("sp");
+    push_const_int(-1 - i);
+    gen_add();
+    fetch(NULL, 0);
+    push_reg("sp");
+    push_const_int(-1);
+    gen_add();
+    fetch(NULL, 0);
+    if (i < strdecl->size - 1) {
+      push_const_int(strdecl->size - 1 - i);
       gen_add();
     }
     fetch(NULL, 0);
@@ -141,11 +146,17 @@ void load_var(id *idptr) {
     push_const_label_offset("Lglob", decl->offset);
     if (decl->type && decl->type->typeclass == TYPE_STRUCT)
       cur_strid = idptr;
+    if (decl->type && decl->type->typeclass == TYPE_ARRAY &&
+        decl->type->elementvar->type->typeclass == TYPE_STRUCT)
+      cur_strid = idptr;
   } else {
     // local variable
     if (decl->declclass != DECL_VAR && decl->declclass != DECL_CONST)
       return;
     if (decl->type && decl->type->typeclass == TYPE_STRUCT)
+      cur_strid = idptr;
+    if (decl->type && decl->type->typeclass == TYPE_ARRAY &&
+        decl->type->elementvar->type->typeclass == TYPE_STRUCT)
       cur_strid = idptr;
     push_reg("fp");
     push_const_int(decl->offset + 1);
@@ -167,7 +178,8 @@ void func_prologue(decl_t *funcdecl) {
 
 void func_call(decl_t *funcdecl) {
   id *idptr = funcdecl->funcid;
-  func_flag = 1;
+  if (funcdecl->returntype->typeclass == TYPE_STRUCT)
+    func_flag = 1;
   if (idptr == write_int_id || idptr == write_char_id ||
       idptr == write_string_id)
     return;
@@ -447,6 +459,8 @@ void assign(void) {
 void fetch(decl_t *declptr, int cond) {
   if (cond) {
     if (declptr->declclass != DECL_VAR || declptr->deref)
+      return;
+    if (declptr->type && declptr->type->typeclass == TYPE_STRUCT)
       return;
   }
   char buf[MX] = "        fetch\n";

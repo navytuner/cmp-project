@@ -182,7 +182,7 @@ stmt_list
   ;
 
 stmt
-  : expr ';'                                        {}
+  : expr ';' { func_flag = 0; }
   | compound_stmt                                   {}
   | RETURN { prepare_return(); } expr ';' { 
     assign();
@@ -237,7 +237,7 @@ expr_e
 expr
   : unary '=' {
     if ($1->type->typeclass == TYPE_STRUCT){
-      str_assign_prologue(cur_strid);
+      str_assign_prologue($1->type);
     }
     else {
       push_reg("sp");
@@ -249,11 +249,12 @@ expr
     else $$ = $4; 
 
     if ($1->type->typeclass == TYPE_STRUCT){
-      if (!func_flag) str_assign(cur_strid);
+      if (!func_flag) str_assign($4);
     } 
     else assign();
     fetch(NULL, 0);
     shift_sp(-1);
+    func_flag = 0;
   }
   | binary { $$ = $1; }
   ;
